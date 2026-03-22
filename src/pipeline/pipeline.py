@@ -166,10 +166,10 @@ class DataPipeline:
             scaler = StandardScaler()
             X_train = scaler.fit_transform(X_train_raw)
                 
-            # Base Models
+            # Base Models (Driven by strict hyperparameter optimization constraints)
             lr_model = LogisticRegressionModel({"model_kwargs": {"max_iter": 2000, "random_state": 42}})
-            rf_model = RandomForestModel({"model_kwargs": {"n_estimators": 50, "max_depth": 5, "random_state": 42}})
-            xgb_model = XGBoostModel({"model_kwargs": {"n_estimators": 50, "max_depth": 3, "learning_rate": 0.05, "eval_metric": "logloss", "random_state": 42}})
+            rf_model = RandomForestModel({"model_kwargs": {"n_estimators": 200, "max_depth": 7, "min_samples_leaf": 5, "random_state": 42}})
+            xgb_model = XGBoostModel({"model_kwargs": {"n_estimators": 100, "max_depth": 3, "learning_rate": 0.1, "eval_metric": "logloss", "random_state": 42}})
             
             # Ensemble wrapper with soft voting averaging
             ensemble_model = EnsembleModel(models=[lr_model, rf_model, xgb_model], voting="soft")

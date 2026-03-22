@@ -189,8 +189,19 @@ class FeatureBuilder:
             "ticker", "is_outlier", "open", "high", "low", "close", "volume",
             "target_fwd_return", "target_direction",
             "day_of_week", "month", "quarter",  # raw calendar (keep encoded versions)
+            "dow_sin", "regime_is_trending_up", "relative_strength_portfolio" # Low-Information features identified during Optimization
         }
-        return [c for c in df.columns if c not in exclude]
+        
+        # Hard block prediction output injections
+        valid_cols = []
+        for c in df.columns:
+            if c in exclude:
+                continue
+            if c.startswith("pred_") or c.startswith("proba_"):
+                continue
+            valid_cols.append(c)
+            
+        return valid_cols
 
     def describe_features(self, df: pd.DataFrame) -> pd.DataFrame:
         """Return summary statistics for all feature columns."""
