@@ -19,6 +19,7 @@ from src.core.backtesting.splitter import WalkForwardSplitter
 from src.core.backtesting.metrics import MetricsCalculator, PerformanceReport
 from src.core.strategies.momentum import MomentumStrategy
 from src.core.strategies.mean_reversion import MeanReversionStrategy
+from src.core.strategies.ml_strategy import MLStrategy
 from src.core.strategies.base import BaseStrategy
 
 
@@ -36,6 +37,8 @@ class BacktestRunner:
         self.strategies: list[BaseStrategy] = [
             MomentumStrategy(bt_cfg.get("strategies", {}).get("momentum")),
             MeanReversionStrategy(bt_cfg.get("strategies", {}).get("mean_reversion")),
+            MLStrategy("LogisticRegression"),
+            MLStrategy("RandomForest"),
         ]
 
     def load_features(self, ticker: str) -> pd.DataFrame:

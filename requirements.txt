@@ -18,3 +18,4 @@ python-dateutil>=2.8.0
 
 # Type Checking (dev)
 mypy>=1.0.0
+scikit-learn>=1.0.0

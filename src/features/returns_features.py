@@ -24,6 +24,7 @@ class ReturnsFeatures:
 
         self.log_return_periods: list[int] = ret.get("log_return_periods", [1, 5, 21])
         self.rolling_return_windows: list[int] = ret.get("rolling_return_windows", [5, 10, 21, 63])
+        self.lagged_returns: list[int] = ret.get("lagged_returns", [1, 2, 3, 5])
         self.vol_windows: list[int] = vol.get("rolling_windows", [10, 21, 63])
         self.ewm_span: int = vol.get("ewm_span", 21)
         self.stat_windows: list[int] = stats.get("windows", [10, 21, 63])
@@ -33,6 +34,14 @@ class ReturnsFeatures:
         """Log returns over N periods: ln(P_t / P_{t-N})."""
         for n in self.log_return_periods:
             df[f"log_ret_{n}d"] = np.log(df["close"] / df["close"].shift(n))
+        
+        # Lagged 1-day returns
+        if "log_ret_1d" not in df.columns:
+            df["log_ret_1d"] = np.log(df["close"] / df["close"].shift(1))
+            
+        for lag in self.lagged_returns:
+            df[f"log_ret_1d_lag_{lag}"] = df["log_ret_1d"].shift(lag)
+            
         return df
 
     def add_rolling_returns(self, df: pd.DataFrame) -> pd.DataFrame:

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Performance metrics for backtesting.
 All metrics are computed from return series — never from raw prices.
 """
@@ -41,7 +41,7 @@ class PerformanceReport:
         return {
             "Strategy": self.strategy_name,
             "Ticker": self.ticker,
-            "Period": f"{self.start_date} → {self.end_date}",
+            "Period": f"{self.start_date} -> {self.end_date}",
             "Total Return": f"{self.total_return:.2%}",
             "CAGR": f"{self.cagr:.2%}",
             "Volatility (Ann.)": f"{self.annualized_volatility:.2%}",

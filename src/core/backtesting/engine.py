@@ -1,4 +1,4 @@
-"""
+﻿"""
 Backtesting engine — simulates trades over time with transaction costs.
 
 Core principle: at time t, the engine only has access to information up to t.
@@ -94,7 +94,7 @@ class BacktestEngine:
         Args:
             df: OHLCV DataFrame with DatetimeIndex (must have 'close' column).
             signals: Series of {+1, 0, -1} aligned to df.index.
-                     Signal at time t → execution at t+1 open (simulated as t+1 close).
+                     Signal at time t -> execution at t+1 open (simulated as t+1 close).
             strategy_name: identifier for the strategy.
             ticker: ticker symbol.
 

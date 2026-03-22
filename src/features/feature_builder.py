@@ -94,7 +94,7 @@ class FeatureBuilder:
         df = df[valid_mask]
 
         logger.info(
-            f"{ticker}: {n_before} → {len(df)} rows after warmup removal "
+            f"{ticker}: {n_before} -> {len(df)} rows after warmup removal "
             f"({n_before - len(df)} warmup rows dropped)"
         )
         return df

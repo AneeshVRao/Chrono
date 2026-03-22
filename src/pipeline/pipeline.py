@@ -16,6 +16,8 @@ from src.utils.logger import setup_logging, get_logger
 from src.data.fetcher import DataFetcher
 from src.data.cleaner import DataCleaner
 from src.features.feature_builder import FeatureBuilder
+from src.models.linear_model import LogisticRegressionModel
+from src.models.tree_model import RandomForestModel
 
 
 class DataPipeline:
@@ -58,6 +60,15 @@ class DataPipeline:
 
         # Step 3: Features
         featured_data = self._build_features(cleaned_data)
+        
+        # Step 4: Model Training (Time-based split)
+        models = self._train_models(featured_data)
+        
+        # Step 5: Predictions
+        featured_data = self._generate_predictions(featured_data, models)
+        
+        # Save final featured data with predictions
+        self.builder.save_features(featured_data)
 
         elapsed = time.time() - t0
         self.logger.info(f"Pipeline complete in {elapsed:.1f}s -- "
@@ -88,5 +99,51 @@ class DataPipeline:
     def _build_features(self, cleaned_data: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]:
         self.logger.info(">> STEP 3: Engineering features...")
         featured = self.builder.build_all(cleaned_data)
-        self.builder.save_features(featured)
         return featured
+
+    def _train_models(self, featured_data: dict[str, pd.DataFrame]) -> dict[str, Any]:
+        self.logger.info(">> STEP 4: Training ML models (time-based split)...")
+        
+        # Combine all ticker data for training
+        combined = pd.concat(featured_data.values(), axis=0).sort_index()
+        
+        # Time-based split: 80% train, 20% test
+        all_dates = combined.index.unique().sort_values()
+        split_idx = int(len(all_dates) * 0.8)
+        split_date = all_dates[split_idx]
+        
+        self.logger.info(f"  Time-based split date: {split_date.date()} (Train: < temp, Test: >= temp)")
+        self.cfg.ml_split_date = split_date  # save for backtesting
+        
+        train_df = combined[combined.index < split_date]
+        
+        # Extract features and target
+        feature_cols = self.builder.get_feature_columns(train_df)
+        X_train = train_df[feature_cols].fillna(0)
+        y_train = train_df["target_direction"].values
+        
+        # Train models
+        self.logger.info(f"  Training on {len(X_train)} samples across {len(featured_data)} tickers")
+        
+        lr_model = LogisticRegressionModel({"model_kwargs": {"max_iter": 2000, "random_state": 42}})
+        lr_model.fit(X_train, y_train)
+        
+        rf_model = RandomForestModel({"model_kwargs": {"n_estimators": 50, "max_depth": 5, "random_state": 42}})
+        rf_model.fit(X_train, y_train)
+        
+        return {"LogisticRegression": lr_model, "RandomForest": rf_model}
+
+    def _generate_predictions(self, featured_data: dict[str, pd.DataFrame], models: dict[str, Any]) -> dict[str, pd.DataFrame]:
+        self.logger.info(">> STEP 5: Generating predictions...")
+        
+        for ticker, df in featured_data.items():
+            feature_cols = self.builder.get_feature_columns(df)
+            X = df[feature_cols].fillna(0)
+            
+            for model_name, model in models.items():
+                col_name = f"pred_{model_name}"
+                df[col_name] = model.predict(X)
+                
+            featured_data[ticker] = df
+            
+        return featured_data
