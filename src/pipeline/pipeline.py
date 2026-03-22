@@ -19,6 +19,7 @@ from src.data.cleaner import DataCleaner
 from src.features.feature_builder import FeatureBuilder
 from src.models.linear_model import LogisticRegressionModel
 from src.models.tree_model import RandomForestModel
+from src.models.ensemble_model import EnsembleModel
 
 
 class DataPipeline:
@@ -103,7 +104,7 @@ class DataPipeline:
         self.logger.info(">> STEP 4 & 5: Walk-forward ML training and predictions...")
         
         # Initialize prediction columns
-        model_names = ["LogisticRegression", "RandomForest"]
+        model_names = ["LogisticRegression", "RandomForest", "Ensemble"]
         for ticker, df in featured_data.items():
             for name in model_names:
                 df[f"pred_{name}"] = 0  # flat by default
@@ -150,12 +151,23 @@ class DataPipeline:
                 fold += 1
                 continue
                 
-            # Retrain models
+            # Base Models
             lr_model = LogisticRegressionModel({"model_kwargs": {"max_iter": 2000, "random_state": 42}})
-            lr_model.fit(X_train, y_train)
-            
             rf_model = RandomForestModel({"model_kwargs": {"n_estimators": 50, "max_depth": 5, "random_state": 42}})
-            rf_model.fit(X_train, y_train)
+            
+            # Ensemble wrapper
+            ensemble_model = EnsembleModel(models=[lr_model, rf_model], voting="soft")
+            
+            # Fit all models (ensemble handles its internal model fitting)
+            ensemble_model.fit(X_train, y_train)
+            
+            # For logging and fallback tracking, we also wrap them dynamically. 
+            # Note: ensemble_model.fit() already fits lr_model and rf_model inplace because Python passes objects by reference
+            models_to_eval = {
+                "LogisticRegression": lr_model,
+                "RandomForest": rf_model,
+                "Ensemble": ensemble_model
+            }
             
             # Generate predictions on the test window for each ticker
             for ticker, df in featured_data.items():
@@ -165,8 +177,8 @@ class DataPipeline:
                     
                 X_test = df.loc[ticker_test_mask, feature_cols].fillna(0)
                 if not X_test.empty:
-                    df.loc[ticker_test_mask, "pred_LogisticRegression"] = lr_model.predict(X_test)
-                    df.loc[ticker_test_mask, "pred_RandomForest"] = rf_model.predict(X_test)
+                    for m_name, mdl in models_to_eval.items():
+                        df.loc[ticker_test_mask, f"pred_{m_name}"] = mdl.predict(X_test)
                 
             start_idx += test_window
             fold += 1

@@ -39,6 +39,7 @@ class BacktestRunner:
             MeanReversionStrategy(bt_cfg.get("strategies", {}).get("mean_reversion")),
             MLStrategy("LogisticRegression"),
             MLStrategy("RandomForest"),
+            MLStrategy("Ensemble"),
         ]
 
     def load_features(self, ticker: str) -> pd.DataFrame:
