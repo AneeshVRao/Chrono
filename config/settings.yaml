@@ -1,0 +1,99 @@
+# ============================================================
+# Quant ML Trading System — Configuration
+# ============================================================
+
+project:
+  name: "quant-ml-trading"
+  version: "0.1.0"
+  log_level: "INFO"                      # DEBUG | INFO | WARNING | ERROR
+
+# --- Data Pipeline -----------------------------------------
+data:
+  tickers:
+    - AAPL
+    - MSFT
+    - GOOGL
+    - AMZN
+    - META
+    - NVDA
+    - JPM
+    - GS
+    - XOM
+    - JNJ
+
+  date_range:
+    start: "2018-01-01"
+    end: "2025-12-31"                    # null = today
+
+  interval: "1d"                         # 1d | 1h | 5m (yfinance intervals)
+
+  storage:
+    raw_dir: "data/raw"
+    processed_dir: "data/processed"
+    features_dir: "data/features"
+    format: "parquet"                    # parquet | csv
+
+  cleaning:
+    max_missing_pct: 0.05               # drop ticker if >5% missing
+    fill_method: "ffill"                 # ffill | interpolate
+    outlier_std_threshold: 5.0           # flag rows > 5σ from rolling mean
+    outlier_window: 60                   # rolling window for outlier detection
+
+# --- Feature Engineering -----------------------------------
+features:
+  technical_indicators:
+    sma_windows: [10, 20, 50, 200]
+    ema_windows: [12, 26, 50]
+    rsi_period: 14
+    macd:
+      fast: 12
+      slow: 26
+      signal: 9
+    bollinger:
+      window: 20
+      num_std: 2.0
+    atr_period: 14
+
+  returns:
+    log_return_periods: [1, 5, 21]       # daily, weekly, monthly
+    rolling_return_windows: [5, 10, 21, 63]
+
+  volatility:
+    rolling_windows: [10, 21, 63]        # realized vol windows
+    ewm_span: 21                         # exponentially weighted vol
+
+  rolling_stats:
+    windows: [10, 21, 63]
+    metrics: ["mean", "std", "skew"]     # rolling statistics on returns
+
+  target:
+    forward_return_period: 5             # predict 5-day forward return
+    classification_threshold: 0.0        # >0 = up, <=0 = down
+
+# --- Backtesting Engine ------------------------------------
+backtesting:
+  walk_forward:
+    n_splits: 5                          # number of walk-forward folds
+    train_months: 12                     # train window in months
+    test_months: 3                       # test window in months
+    gap_days: 5                          # gap between train and test (prevent leakage)
+    min_train_size: 200                  # minimum training samples
+
+  transaction_costs:
+    slippage_bps: 5                      # slippage in basis points
+    commission_bps: 5                    # commission in basis points (total = 10 bps)
+
+  initial_capital: 100000.0              # starting portfolio value
+
+  strategies:
+    momentum:
+      lookback_period: 21                # days of past returns to consider
+      entry_threshold: 0.02             # go long if momentum > 2%
+      exit_threshold: -0.01             # exit if momentum < -1%
+
+    mean_reversion:
+      rsi_oversold: 30                   # buy signal
+      rsi_overbought: 70                # sell signal
+      sma_window: 20                     # deviation from SMA
+      sma_entry_threshold: -0.03        # buy if price 3% below SMA
+      sma_exit_threshold: 0.02          # sell if price 2% above SMA

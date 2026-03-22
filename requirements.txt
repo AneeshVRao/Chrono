@@ -1,0 +1,20 @@
+# === Phase 1: Data Pipeline + Feature Engineering ===
+# Core
+pandas>=2.0.0
+numpy>=1.24.0
+pyarrow>=14.0.0
+
+# Data Sources
+yfinance>=0.2.31
+
+# Technical Indicators
+pandas-ta>=0.3.14b1
+
+# Configuration
+pyyaml>=6.0
+
+# Logging & Utils
+python-dateutil>=2.8.0
+
+# Type Checking (dev)
+mypy>=1.0.0
