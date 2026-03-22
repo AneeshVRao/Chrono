@@ -1,0 +1,29 @@
+CHRONO -- STRATEGY ROBUSTNESS VALIDATION
+==================================================
+
+Phase 1 -- Time Robustness:
+label  accuracy       f1      auc  n_test                   period
+Early  0.562544 0.615006 0.559873    1431 2018-02-07 -> 2020-09-25
+  Mid  0.466806 0.471972 0.465926    1431 2020-09-28 -> 2023-03-31
+ Late  0.515024 0.614872 0.489656    1431 2023-03-31 -> 2025-12-29
+
+Phase 2 -- Feature Stability:
+              label  accuracy       f1      auc  n_test
+      Full Features  0.529535 0.628177 0.506004    2861
+   Top 50% Features  0.543866 0.650602 0.511667    2861
+Random 50% Features  0.537574 0.620591 0.510412    2861
+
+Phase 3 -- Randomization: PASS
+  Real Acc:     0.5295
+  Shuffled Acc: 0.5170
+
+Phase 4 -- Cost Stress:
+Cost     CAGR Sharpe         MaxDD                  Total Return
+0.1% -100.00%  2.338 -27339157.39% -556868921421876372176896.00%
+0.5% -100.00%  2.305     -4692.91%      -4784075773941729280.00%
+1.0% 1561.06%  2.263   -131538.10%          7165427474938580.00%
+2.0%   77.12%  2.180     -1397.21%                     65744.57%
+
+Phase 5 -- Outlier Dependence: ROBUST
+  Full Sharpe:    +2.347
+  No Top5 Sharpe: +2.259
