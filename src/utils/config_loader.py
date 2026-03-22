@@ -76,6 +76,10 @@ class Config:
     @property
     def backtesting_params(self) -> dict[str, Any]:
         return self._cfg.get("backtesting", {})
+        
+    @property
+    def ml_pipeline(self) -> dict[str, Any]:
+        return self._cfg.get("ml_pipeline", {})
 
     @property
     def log_level(self) -> str:

@@ -98,3 +98,9 @@ backtesting:
       sma_window: 20                     # deviation from SMA
       sma_entry_threshold: -0.03        # buy if price 3% below SMA
       sma_exit_threshold: 0.02          # sell if price 2% above SMA
+
+# --- ML Pipeline ---------------------------------------
+ml_pipeline:
+  walk_forward:
+    train_window_days: 252               # approximately 1 year of trading days
+    test_window_days: 20                 # approximately 1 month of trading days

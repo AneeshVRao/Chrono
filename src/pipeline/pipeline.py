@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
+import numpy as np
 
 from src.utils.config_loader import Config
 from src.utils.logger import setup_logging, get_logger
@@ -61,11 +62,8 @@ class DataPipeline:
         # Step 3: Features
         featured_data = self._build_features(cleaned_data)
         
-        # Step 4: Model Training (Time-based split)
-        models = self._train_models(featured_data)
-        
-        # Step 5: Predictions
-        featured_data = self._generate_predictions(featured_data, models)
+        # Step 4 & 5: Walk-Forward ML (Train & Predict)
+        featured_data = self._walk_forward_ml(featured_data)
         
         # Save final featured data with predictions
         self.builder.save_features(featured_data)
@@ -101,49 +99,76 @@ class DataPipeline:
         featured = self.builder.build_all(cleaned_data)
         return featured
 
-    def _train_models(self, featured_data: dict[str, pd.DataFrame]) -> dict[str, Any]:
-        self.logger.info(">> STEP 4: Training ML models (time-based split)...")
+    def _walk_forward_ml(self, featured_data: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]:
+        self.logger.info(">> STEP 4 & 5: Walk-forward ML training and predictions...")
         
-        # Combine all ticker data for training
-        combined = pd.concat(featured_data.values(), axis=0).sort_index()
-        
-        # Time-based split: 80% train, 20% test
-        all_dates = combined.index.unique().sort_values()
-        split_idx = int(len(all_dates) * 0.8)
-        split_date = all_dates[split_idx]
-        
-        self.logger.info(f"  Time-based split date: {split_date.date()} (Train: < temp, Test: >= temp)")
-        self.cfg.ml_split_date = split_date  # save for backtesting
-        
-        train_df = combined[combined.index < split_date]
-        
-        # Extract features and target
-        feature_cols = self.builder.get_feature_columns(train_df)
-        X_train = train_df[feature_cols].fillna(0)
-        y_train = train_df["target_direction"].values
-        
-        # Train models
-        self.logger.info(f"  Training on {len(X_train)} samples across {len(featured_data)} tickers")
-        
-        lr_model = LogisticRegressionModel({"model_kwargs": {"max_iter": 2000, "random_state": 42}})
-        lr_model.fit(X_train, y_train)
-        
-        rf_model = RandomForestModel({"model_kwargs": {"n_estimators": 50, "max_depth": 5, "random_state": 42}})
-        rf_model.fit(X_train, y_train)
-        
-        return {"LogisticRegression": lr_model, "RandomForest": rf_model}
-
-    def _generate_predictions(self, featured_data: dict[str, pd.DataFrame], models: dict[str, Any]) -> dict[str, pd.DataFrame]:
-        self.logger.info(">> STEP 5: Generating predictions...")
-        
+        # Initialize prediction columns
+        model_names = ["LogisticRegression", "RandomForest"]
         for ticker, df in featured_data.items():
-            feature_cols = self.builder.get_feature_columns(df)
-            X = df[feature_cols].fillna(0)
+            for name in model_names:
+                df[f"pred_{name}"] = 0  # flat by default
+        
+        # Combine all ticker data for time-based splitting
+        combined = pd.concat(featured_data.values(), axis=0).sort_index()
+        all_dates = combined.index.unique().sort_values()
+        
+        # Read parameters (defaults if not found)
+        ml_cfg = getattr(self.cfg, "ml_pipeline", {})
+        wf_cfg = ml_cfg.get("walk_forward", {}) if ml_cfg else {}
+        train_window = wf_cfg.get("train_window_days", 252)
+        test_window = wf_cfg.get("test_window_days", 20)
+        
+        num_dates = len(all_dates)
+        if num_dates <= train_window:
+            self.logger.warning("Not enough data to train ML models with the given train_window.")
+            return featured_data
             
-            for model_name, model in models.items():
-                col_name = f"pred_{model_name}"
-                df[col_name] = model.predict(X)
+        start_idx = train_window
+        fold = 1
+        
+        while start_idx < num_dates:
+            test_end_idx = min(start_idx + test_window, num_dates)
+            train_start_idx = max(0, start_idx - train_window)
+            
+            train_dates = all_dates[train_start_idx : start_idx]
+            test_dates = all_dates[start_idx : test_end_idx]
+            
+            t_train_start, t_train_end = train_dates[0], train_dates[-1]
+            t_test_start, t_test_end = test_dates[0], test_dates[-1]
+            
+            self.logger.info(f"  Fold {fold} | Train: {t_train_start.date()} -> {t_train_end.date()} | Test: {t_test_start.date()} -> {t_test_end.date()}")
+            
+            # Extract train data
+            train_df = combined[(combined.index >= t_train_start) & (combined.index <= t_train_end)]
+            feature_cols = self.builder.get_feature_columns(train_df)
+            X_train = train_df[feature_cols].fillna(0)
+            y_train = train_df["target_direction"].values
+            
+            if len(np.unique(y_train)) < 2:
+                self.logger.warning("    Not enough classes in training window, skipping test predictions.")
+                start_idx += test_window
+                fold += 1
+                continue
                 
-            featured_data[ticker] = df
+            # Retrain models
+            lr_model = LogisticRegressionModel({"model_kwargs": {"max_iter": 2000, "random_state": 42}})
+            lr_model.fit(X_train, y_train)
+            
+            rf_model = RandomForestModel({"model_kwargs": {"n_estimators": 50, "max_depth": 5, "random_state": 42}})
+            rf_model.fit(X_train, y_train)
+            
+            # Generate predictions on the test window for each ticker
+            for ticker, df in featured_data.items():
+                ticker_test_mask = (df.index >= t_test_start) & (df.index <= t_test_end)
+                if not ticker_test_mask.any():
+                    continue
+                    
+                X_test = df.loc[ticker_test_mask, feature_cols].fillna(0)
+                if not X_test.empty:
+                    df.loc[ticker_test_mask, "pred_LogisticRegression"] = lr_model.predict(X_test)
+                    df.loc[ticker_test_mask, "pred_RandomForest"] = rf_model.predict(X_test)
+                
+            start_idx += test_window
+            fold += 1
             
         return featured_data
