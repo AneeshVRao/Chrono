@@ -147,8 +147,9 @@ class DataPipeline:
             
             self.logger.info(f"  Fold {fold} | Train: {t_train_start.date()} -> {t_train_end.date()} | Test: {t_test_start.date()} -> {t_test_end.date()}")
             
-            # Extract train data
+            # Extract train data and drop any trailing NaN targets (forward-looking edge gap)
             train_df = combined[(combined.index >= t_train_start) & (combined.index <= t_train_end)]
+            train_df = train_df.dropna(subset=["target_direction"])
             feature_cols = self.builder.get_feature_columns(train_df)
             
             # Robust filling logic: forward fill absolute values, then 0 for leftover NaNs

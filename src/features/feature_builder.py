@@ -51,7 +51,9 @@ class FeatureBuilder:
         It exists only for convenience — the ML module will handle separation.
         """
         df["target_fwd_return"] = df["close"].pct_change(periods=self.fwd_period).shift(-self.fwd_period)
-        df["target_direction"] = (df["target_fwd_return"] > self.cls_threshold).astype(int)
+        # Keep targets as NaN if forward return is not calculable, to prevent false negative signals
+        direction = (df["target_fwd_return"] > self.cls_threshold).astype(float)
+        df["target_direction"] = direction.where(df["target_fwd_return"].notna(), np.nan)
         return df
 
     def _add_calendar_features(self, df: pd.DataFrame) -> pd.DataFrame:
