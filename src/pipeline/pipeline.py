@@ -147,56 +147,82 @@ class DataPipeline:
             
             self.logger.info(f"  Fold {fold} | Train: {t_train_start.date()} -> {t_train_end.date()} | Test: {t_test_start.date()} -> {t_test_end.date()}")
             
-            # Extract train data and drop any trailing NaN targets (forward-looking edge gap)
+            # Train-Test Data Separation
             train_df = combined[(combined.index >= t_train_start) & (combined.index <= t_train_end)]
             train_df = train_df.dropna(subset=["target_direction"])
             feature_cols = self.builder.get_feature_columns(train_df)
             
-            # Robust filling logic: forward fill absolute values, then 0 for leftover NaNs
+            # Robust filling logic: global train baseline
             X_train_raw = train_df[feature_cols].ffill().fillna(0)
-            y_train = train_df["target_direction"].values
             
-            if len(np.unique(y_train)) < 2:
-                self.logger.warning("    Not enough classes in training window, skipping test predictions.")
+            # CRITICAL FIX: Standard Scaling (Fit Globally but scale separately)
+            scaler = StandardScaler()
+            scaler.fit(X_train_raw)
+            
+            def create_models():
+                lr = LogisticRegressionModel({"model_kwargs": {"max_iter": 2000, "random_state": 42}})
+                rf = RandomForestModel({"model_kwargs": {"n_estimators": 200, "max_depth": 7, "min_samples_leaf": 5, "random_state": 42}})
+                xgb = XGBoostModel({"model_kwargs": {"n_estimators": 100, "max_depth": 3, "learning_rate": 0.1, "eval_metric": "logloss", "random_state": 42}})
+                ens = EnsembleModel(models=[lr, rf, xgb], voting="soft")
+                return {"LogisticRegression": lr, "RandomForest": rf, "XGBoost": xgb, "Ensemble": ens}
+
+            models_bull = create_models()
+            models_bear = create_models()
+            
+            # Phase 1 & 2: Split regimes and train separately
+            bull_mask = train_df["regime_trend_bullish"] == 1
+            train_bull = train_df[bull_mask]
+            train_bear = train_df[~bull_mask]
+            
+            def fit_regime(df_regime, mdls):
+                if len(df_regime) > 10:
+                    y = df_regime["target_direction"].values
+                    if len(np.unique(y)) >= 2:
+                        x_raw = df_regime[feature_cols].ffill().fillna(0)
+                        x_scaled = scaler.transform(x_raw)
+                        mdls["Ensemble"].fit(x_scaled, y)  # internal mapping trains all sub-models flawlessly
+                        return True
+                return False
+                
+            bull_valid = fit_regime(train_bull, models_bull)
+            bear_valid = fit_regime(train_bear, models_bear)
+            
+            if not bull_valid and not bear_valid:
+                self.logger.warning("    Neither regime has valid classes, skipping fold.")
                 start_idx += test_window
                 fold += 1
                 continue
-                
-            # CRITICAL FIX: Standard Scaling
-            scaler = StandardScaler()
-            X_train = scaler.fit_transform(X_train_raw)
-                
-            # Base Models (Driven by strict hyperparameter optimization constraints)
-            lr_model = LogisticRegressionModel({"model_kwargs": {"max_iter": 2000, "random_state": 42}})
-            rf_model = RandomForestModel({"model_kwargs": {"n_estimators": 200, "max_depth": 7, "min_samples_leaf": 5, "random_state": 42}})
-            xgb_model = XGBoostModel({"model_kwargs": {"n_estimators": 100, "max_depth": 3, "learning_rate": 0.1, "eval_metric": "logloss", "random_state": 42}})
             
-            # Ensemble wrapper with soft voting averaging
-            ensemble_model = EnsembleModel(models=[lr_model, rf_model, xgb_model], voting="soft")
-            
-            # Fit all models (ensemble delegates to internal models automatically)
-            ensemble_model.fit(X_train, y_train)
-            
-            models_to_eval = {
-                "LogisticRegression": lr_model,
-                "RandomForest": rf_model,
-                "XGBoost": xgb_model,
-                "Ensemble": ensemble_model
-            }
-            
-            # Predict on the precisely aligned test window out-of-sample block
+            # Predict on the precisely aligned test window out-of-sample block (Phase 3 Runtime Switching)
             for ticker, df in featured_data.items():
                 ticker_test_mask = (df.index >= t_test_start) & (df.index <= t_test_end)
                 if not ticker_test_mask.any():
                     continue
                     
                 X_test_raw = df.loc[ticker_test_mask, feature_cols].ffill().fillna(0)
+                bull_pred_mask = (df.loc[ticker_test_mask, "regime_trend_bullish"] == 1).values
+                
                 if not X_test_raw.empty:
-                    X_test = scaler.transform(X_test_raw)
+                    X_test_scaled = scaler.transform(X_test_raw)
                     
-                    for m_name, mdl in models_to_eval.items():
-                        preds = mdl.predict(X_test)
-                        probas = mdl.predict_proba(X_test)
+                    for m_name in models_bull.keys():
+                        preds = np.zeros(len(X_test_raw))
+                        probas = np.full(len(X_test_raw), 0.5)
+                        
+                        m_bull = models_bull[m_name]
+                        m_bear = models_bear[m_name]
+                        
+                        # Bull routing
+                        if bull_valid and bull_pred_mask.any():
+                            idx_bull = np.where(bull_pred_mask)[0]
+                            preds[idx_bull] = m_bull.predict(X_test_scaled[idx_bull])
+                            probas[idx_bull] = m_bull.predict_proba(X_test_scaled[idx_bull])
+                            
+                        # Bear routing
+                        if bear_valid and (~bull_pred_mask).any():
+                            idx_bear = np.where(~bull_pred_mask)[0]
+                            preds[idx_bear] = m_bear.predict(X_test_scaled[idx_bear])
+                            probas[idx_bear] = m_bear.predict_proba(X_test_scaled[idx_bear])
                         
                         # Validate predictions safely
                         invalid_mask = np.isnan(probas)
