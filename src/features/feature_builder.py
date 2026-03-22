@@ -93,7 +93,15 @@ class FeatureBuilder:
         # 4. Target variable (forward-looking — for labels only)
         df = self._add_target(df)
 
-        # 5. Drop warmup period (NaN rows from rolling windows)
+        # 5. Cross-Asset phase logic (computed using pre-injected portfolio data)
+        # Assuming build_all pre-populated 'portfolio_avg_return'
+        if "portfolio_avg_return" in df.columns and "log_ret_1d" in df.columns:
+            # Relative strength vs portfolio
+            df["relative_strength_portfolio"] = df["log_ret_1d"] - df["portfolio_avg_return"]
+            # 20-day rolling correlation with portfolio index
+            df["corr_with_portfolio_20d"] = df["log_ret_1d"].rolling(20, min_periods=10).corr(df["portfolio_avg_return"])
+            
+        # 6. Drop warmup period (NaN rows from rolling windows)
         n_before = len(df)
         # Keep rows where at least 80% of feature columns are non-NaN
         feature_cols = [c for c in df.columns if c not in ["ticker", "is_outlier"]]
@@ -109,10 +117,35 @@ class FeatureBuilder:
     def build_all(self, cleaned_data: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]:
         """Build features for all tickers."""
         results: dict[str, pd.DataFrame] = {}
+        
+        # --- Pre-calculate Global Cross-Asset Portfolio Benchmarks ---
+        # Get purely raw returns per ticker
+        returns_list = []
         for ticker, df in cleaned_data.items():
-            featured = self.build_features(df.copy(), ticker)
+            if "close" in df.columns:
+                returns_list.append(df["close"].pct_change().rename(ticker))
+                
+        if returns_list:
+            portfolio_avg_return = pd.concat(returns_list, axis=1).mean(axis=1)
+        else:
+            portfolio_avg_return = None
+            
+        # --- Build Features Iteratively ---
+        for ticker, df in cleaned_data.items():
+            df_copy = df.copy()
+            
+            # Inject Cross-Asset Data dynamically
+            if portfolio_avg_return is not None:
+                # Add it so that `build_features` picks it up directly
+                df_copy = df_copy.join(portfolio_avg_return.rename("portfolio_avg_return"), how="left")
+                
+            featured = self.build_features(df_copy, ticker)
+            
+            # Cleanup injected feature from final matrix if desired (optional, we keep it for ML tracking)
+            # Actually, keeping it perfectly validates Phase 5!
             if not featured.empty:
                 results[ticker] = featured
+                
         return results
 
     def save_features(self, data: dict[str, pd.DataFrame]) -> list[Path]:

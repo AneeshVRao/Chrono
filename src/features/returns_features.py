@@ -22,12 +22,12 @@ class ReturnsFeatures:
         vol = params.get("volatility", {})
         stats = params.get("rolling_stats", {})
 
-        self.log_return_periods: list[int] = ret.get("log_return_periods", [1, 5, 21])
-        self.rolling_return_windows: list[int] = ret.get("rolling_return_windows", [5, 10, 21, 63])
+        self.log_return_periods: list[int] = ret.get("log_return_periods", [1, 5, 10, 20])
+        self.rolling_return_windows: list[int] = ret.get("rolling_return_windows", [5, 10, 20])
         self.lagged_returns: list[int] = ret.get("lagged_returns", [1, 2, 3, 5])
-        self.vol_windows: list[int] = vol.get("rolling_windows", [10, 21, 63])
-        self.ewm_span: int = vol.get("ewm_span", 21)
-        self.stat_windows: list[int] = stats.get("windows", [10, 21, 63])
+        self.vol_windows: list[int] = vol.get("rolling_windows", [5, 10, 20])
+        self.ewm_span: int = vol.get("ewm_span", 20)
+        self.stat_windows: list[int] = stats.get("windows", [5, 10, 20])
         self.stat_metrics: list[str] = stats.get("metrics", ["mean", "std", "skew"])
 
     def add_log_returns(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -65,6 +65,11 @@ class ReturnsFeatures:
         df["ewm_vol"] = (
             df["log_ret_1d"].ewm(span=self.ewm_span, min_periods=self.ewm_span).std() * np.sqrt(252)
         )
+        
+        # Volatility ratio (short vs long)
+        if "realized_vol_5d" in df.columns and "realized_vol_20d" in df.columns:
+            df["vol_ratio_5_20"] = df["realized_vol_5d"] / (df["realized_vol_20d"] + 1e-10)
+            
         return df
 
     def add_rolling_statistics(self, df: pd.DataFrame) -> pd.DataFrame:

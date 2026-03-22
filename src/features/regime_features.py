@@ -36,12 +36,18 @@ class RegimeFeatures:
         vol = df["log_ret_1d"].rolling(window=self.vol_window, min_periods=self.vol_window).std() * np.sqrt(252)
         df["regime_volatility"] = vol
         
-        # High Volatility Regime: Volatility is > 1.5x its historical 252-day moving average
+        # High Volatility Regime: Volatility is > 1.2x its historical 252-day moving average
         vol_mean_252 = vol.rolling(252, min_periods=63).mean()
-        df["regime_is_high_vol"] = (vol > (vol_mean_252 * 1.5)).astype(int)
+        df["regime_is_high_vol"] = (vol > (vol_mean_252 * 1.2)).astype(int)
+        df["regime_is_low_vol"] = (vol <= vol_mean_252).astype(int)
 
         # 2. Trend Strength (Slope of SMA)
         sma = df["close"].rolling(self.trend_window, min_periods=self.trend_window).mean()
+        
+        # Bullish/Bearish Regime (Price vs 50 MA)
+        df["regime_trend_bullish"] = (df["close"] > sma).astype(int)
+        df["regime_trend_bearish"] = (df["close"] <= sma).astype(int)
+        
         # Slope over 5 days
         sma_slope = (sma - sma.shift(5)) / sma.shift(5)
         df["regime_trend_slope"] = sma_slope

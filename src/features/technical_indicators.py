@@ -91,6 +91,15 @@ class TechnicalIndicators:
         df["atr_pct"] = df["atr"] / (df["close"] + 1e-10)  # normalized ATR
         return df
 
+    def add_zscores(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Price Z-score: (price - rolling_mean) / rolling_std"""
+        for w in self.sma_windows:
+            rolling = df["close"].rolling(window=w, min_periods=w)
+            mean = rolling.mean()
+            std = rolling.std()
+            df[f"zscore_{w}"] = (df["close"] - mean) / (std + 1e-10)
+        return df
+
     def add_all(self, df: pd.DataFrame) -> pd.DataFrame:
         """Apply all technical indicators."""
         logger.info("Computing technical indicators...")
@@ -100,6 +109,7 @@ class TechnicalIndicators:
         df = self.add_macd(df)
         df = self.add_bollinger_bands(df)
         df = self.add_atr(df)
+        df = self.add_zscores(df)
 
         # Cross-feature: price relative to SMAs
         for w in self.sma_windows:
