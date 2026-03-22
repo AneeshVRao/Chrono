@@ -1,14 +1,10 @@
 """
 run_backtest.py — Phase 2 entry point.
 
-Runs baseline strategies (Momentum, Mean Reversion) on Phase 1 feature data.
-Produces performance reports, equity curves, and a comparison table.
-
 Usage:
-    python run_backtest.py                      # all tickers, all strategies
-    python run_backtest.py --ticker AAPL        # single ticker
-    python run_backtest.py --skip-fetch         # skip data re-download
-    python run_backtest.py --config path.yaml   # custom config
+    python scripts/run_backtest.py                      # all tickers, all strategies
+    python scripts/run_backtest.py --ticker AAPL        # single ticker
+    python scripts/run_backtest.py --config path.yaml   # custom config
 """
 
 from __future__ import annotations
@@ -18,17 +14,14 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+# Fix sys.path to allow src imports (since we are in scripts/ dir)
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.utils.config_loader import Config
-from src.utils.logger import setup_logging, get_logger
-from src.core.backtesting.engine import BacktestEngine, BacktestResult
-from src.core.backtesting.splitter import WalkForwardSplitter
-from src.core.backtesting.metrics import MetricsCalculator, PerformanceReport
-from src.core.strategies.momentum import MomentumStrategy
-from src.core.strategies.mean_reversion import MeanReversionStrategy
+from src.utils.logger import setup_logging
+from src.pipeline.backtest_runner import BacktestRunner
+from src.core.backtesting.metrics import MetricsCalculator
 
-import pandas as pd
 import numpy as np
 
 
@@ -39,24 +32,9 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def load_feature_data(features_dir: Path, ticker: str) -> pd.DataFrame:
-    """Load feature-engineered data for a ticker."""
-    path = features_dir / f"{ticker}_features.parquet"
-    if not path.exists():
-        raise FileNotFoundError(
-            f"Feature file not found: {path}\n"
-            "Run `python run_pipeline.py` first to generate features."
-        )
-    df = pd.read_parquet(path, engine="pyarrow")
-    if not isinstance(df.index, pd.DatetimeIndex):
-        df.index = pd.to_datetime(df.index)
-    return df
-
-
-def print_equity_curve_summary(result: BacktestResult) -> None:
+def print_equity_curve_summary(result) -> None:
     """Print text-based equity curve summary."""
     eq = result.equity_curve
-    daily_ret = result.daily_returns
 
     # Quarterly snapshots
     quarterly = eq.resample("QE").last().dropna()
@@ -68,32 +46,18 @@ def print_equity_curve_summary(result: BacktestResult) -> None:
         print(f"  {str(date.date()):<14s} ${val:>11,.0f} {cum_ret:>11.2%}")
 
 
-def print_walk_forward_results(
-    splitter: WalkForwardSplitter,
-    df: pd.DataFrame,
-    engine: BacktestEngine,
-    strategy,
-    ticker: str,
-) -> list[PerformanceReport]:
-    """Run walk-forward validation and print per-fold results."""
+def print_walk_forward_results(fold_reports, strategy_name, ticker) -> None:
+    """Print per-fold walk-forward validation results."""
     print(f"\n{'=' * 60}")
-    print(f"  WALK-FORWARD VALIDATION: {strategy.name} -- {ticker}")
+    print(f"  WALK-FORWARD VALIDATION: {strategy_name} -- {ticker}")
     print(f"{'=' * 60}")
 
-    fold_reports: list[PerformanceReport] = []
-
-    for train_df, test_df, window in splitter.iter_splits(df):
-        print(f"\n  {window}")
-
-        # Generate signals on test data (using features computed from past only)
-        signals = strategy.generate_signals(test_df)
-        result = engine.run(test_df, signals, strategy.name, ticker)
-        fold_reports.append(result.report)
-
-        print(f"    Sharpe: {result.report.sharpe_ratio:.3f}  |  "
-              f"Return: {result.report.total_return:.2%}  |  "
-              f"MaxDD: {result.report.max_drawdown:.2%}  |  "
-              f"Trades: {result.report.total_trades}")
+    for i, report in enumerate(fold_reports):
+        print(f"\n  Fold {i+1} ({report.start_date} -> {report.end_date})")
+        print(f"    Sharpe: {report.sharpe_ratio:.3f}  |  "
+              f"Return: {report.total_return:.2%}  |  "
+              f"MaxDD: {report.max_drawdown:.2%}  |  "
+              f"Trades: {report.total_trades}")
 
     # Summary across folds
     if fold_reports:
@@ -104,64 +68,26 @@ def print_walk_forward_results(
         print(f"  Walk-Forward Average:")
         print(f"    Sharpe: {avg_sharpe:.3f}  |  Return: {avg_return:.2%}  |  MaxDD: {avg_dd:.2%}")
 
-    return fold_reports
-
 
 def main() -> None:
     args = parse_args()
     cfg = Config(args.config)
 
     setup_logging(level=cfg.log_level, log_dir=cfg.project_root / "logs")
-    logger = get_logger("backtest")
 
-    bt_cfg = cfg.backtesting_params
-
-    logger.info("=" * 70)
-    logger.info("  QUANT ML TRADING SYSTEM — Phase 2: Backtesting")
-    logger.info("=" * 70)
-
+    runner = BacktestRunner(cfg)
+    
     t0 = time.time()
+    
+    tickers_to_run = [args.ticker.upper()] if args.ticker else cfg.tickers
 
-    # ── Determine tickers ──────────────────────────────────────────────
-    tickers = [args.ticker.upper()] if args.ticker else cfg.tickers
+    all_results, all_reports = runner.run_all(tickers=tickers_to_run)
 
-    # ── Initialize components ──────────────────────────────────────────
-    engine = BacktestEngine.from_config(bt_cfg)
-    splitter = WalkForwardSplitter.from_config(bt_cfg)
-
-    strategies = [
-        MomentumStrategy(bt_cfg.get("strategies", {}).get("momentum")),
-        MeanReversionStrategy(bt_cfg.get("strategies", {}).get("mean_reversion")),
-    ]
-
-    # ── Run backtests ──────────────────────────────────────────────────
-    all_reports: list[PerformanceReport] = []
-    all_results: list[BacktestResult] = []
-
-    for ticker in tickers:
-        logger.info(f"\n▶ Processing {ticker}...")
-
-        try:
-            df = load_feature_data(cfg.features_dir, ticker)
-        except FileNotFoundError as e:
-            logger.error(str(e))
-            continue
-
-        # ── Full-sample backtest (for equity curve) ────────────────
-        for strategy in strategies:
-            signals = strategy.generate_signals(df)
-            result = engine.run(df, signals, strategy.name, ticker)
-            all_results.append(result)
-            all_reports.append(result.report)
-
-        # ── Benchmark ──────────────────────────────────────────────
-        benchmark = engine.run_benchmark(df, ticker)
-        all_results.append(benchmark)
-        all_reports.append(benchmark.report)
-
-        # ── Walk-forward validation ────────────────────────────────
-        for strategy in strategies:
-            print_walk_forward_results(splitter, df, engine, strategy, ticker)
+    # ── Walk-forward validation (keep printing logic isolated) ────
+    for ticker in tickers_to_run:
+        for strategy in runner.strategies:
+            fold_reports = runner.run_walk_forward(ticker, strategy)
+            print_walk_forward_results(fold_reports, strategy.name, ticker)
 
     # ── Summary ────────────────────────────────────────────────────────
     elapsed = time.time() - t0
@@ -181,7 +107,7 @@ def main() -> None:
 
     print(f"\n{'=' * 70}")
     print(f"  Pipeline completed in {elapsed:.1f}s")
-    print(f"  Tickers: {len(tickers)}  |  Strategies: {len(strategies) + 1}")
+    print(f"  Tickers: {len(tickers_to_run)}  |  Strategies: {len(runner.strategies) + 1}")
     print(f"{'=' * 70}")
 
     # ── Phase 3 connection point ───────────────────────────────────────
@@ -194,7 +120,6 @@ def main() -> None:
     print(f"         def generate_signals(self, df):")
     print(f"             predictions = self.model.predict(df[feature_cols])")
     print(f"             return pd.Series(np.sign(predictions), index=df.index)")
-
 
 if __name__ == "__main__":
     main()
