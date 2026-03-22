@@ -1,5 +1,6 @@
 # Python
 __pycache__/
+*.pyc
 *.py[cod]
 *$py.class
 *.so
@@ -34,10 +35,6 @@ data/processed/
 data/features/
 
 # Temp / audit output
-backtest_output.txt
-audit_results.txt
-audit_backtest.txt
-test_backtest.py
 
 # Jupyter
 .ipynb_checkpoints/

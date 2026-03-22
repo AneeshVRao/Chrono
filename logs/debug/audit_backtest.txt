@@ -1,0 +1,158 @@
+[2026-03-22 12:12:32] INFO     backtest                       | ======================================================================
+[2026-03-22 12:12:32] INFO     backtest                       |   QUANT ML TRADING SYSTEM — Phase 2: Backtesting
+[2026-03-22 12:12:32] INFO     backtest                       | ======================================================================
+[2026-03-22 12:12:32] INFO     src.strategies.momentum        | Momentum signals: 1203 long, 633 short, 141 flat (lookback=21d)
+[2026-03-22 12:12:32] INFO     src.backtesting.engine         | Running backtest: Momentum on AAPL (1977 bars)
+[2026-03-22 12:12:32] INFO     src.backtesting.engine         |   Completed: 79 trade entries, Sharpe=0.266, Return=78.67%
+[2026-03-22 12:12:32] INFO     src.strategies.mean_reversion  | Mean Reversion signals: 222 long, 658 short, 1097 flat (RSI bounds=30/70)
+[2026-03-22 12:12:32] INFO     src.backtesting.engine         | Running backtest: Mean Reversion on AAPL (1977 bars)
+[2026-03-22 12:12:32] INFO     src.backtesting.engine         |   Completed: 28 trade entries, Sharpe=-0.574, Return=-58.79%
+[2026-03-22 12:12:32] INFO     src.backtesting.engine         | Running backtest: Buy & Hold on AAPL (1977 bars)
+[2026-03-22 12:12:32] INFO     src.backtesting.engine         |   Completed: 1 trade entries, Sharpe=0.817, Return=575.10%
+
+============================================================
+  WALK-FORWARD VALIDATION: Momentum -- AAPL
+============================================================
+[2026-03-22 12:12:32] INFO     src.backtesting.splitter       | Walk-forward splits created: 5 folds
+
+STDERR:
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Python313\Lib\logging\__init__.py", line 1153, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python313\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u25b6' in position 66: character maps to <undefined>
+Call stack:
+  File "c:\Users\anees\Documents\Projects\AI FINANCE\run_backtest.py", line 200, in <module>
+    main()
+  File "c:\Users\anees\Documents\Projects\AI FINANCE\run_backtest.py", line 142, in main
+    logger.info(f"\n\u25b6 Processing {ticker}...")
+Message: '\n\u25b6 Processing AAPL...'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Python313\Lib\logging\__init__.py", line 1153, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python313\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2192' in position 92: character maps to <undefined>
+Call stack:
+  File "c:\Users\anees\Documents\Projects\AI FINANCE\run_backtest.py", line 200, in <module>
+    main()
+  File "c:\Users\anees\Documents\Projects\AI FINANCE\run_backtest.py", line 164, in main
+    print_walk_forward_results(splitter, df, engine, strategy, ticker)
+  File "c:\Users\anees\Documents\Projects\AI FINANCE\run_backtest.py", line 85, in print_walk_forward_results
+    for train_df, test_df, window in splitter.iter_splits(df):
+  File "C:\Users\anees\Documents\Projects\AI FINANCE\src\backtesting\splitter.py", line 154, in iter_splits
+    splits = self.split(df)
+  File "C:\Users\anees\Documents\Projects\AI FINANCE\src\backtesting\splitter.py", line 146, in split
+    logger.info(f"  {s}")
+Message: '  Fold 1: Train [2023-09-25 \u2192 2024-09-25] (253 rows) | Test [2024-09-30 \u2192 2024-12-30] (64 rows)'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Python313\Lib\logging\__init__.py", line 1153, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python313\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2192' in position 92: character maps to <undefined>
+Call stack:
+  File "c:\Users\anees\Documents\Projects\AI FINANCE\run_backtest.py", line 200, in <module>
+    main()
+  File "c:\Users\anees\Documents\Projects\AI FINANCE\run_backtest.py", line 164, in main
+    print_walk_forward_results(splitter, df, engine, strategy, ticker)
+  File "c:\Users\anees\Documents\Projects\AI FINANCE\run_backtest.py", line 85, in print_walk_forward_results
+    for train_df, test_df, window in splitter.iter_splits(df):
+  File "C:\Users\anees\Documents\Projects\AI FINANCE\src\backtesting\splitter.py", line 154, in iter_splits
+    splits = self.split(df)
+  File "C:\Users\anees\Documents\Projects\AI FINANCE\src\backtesting\splitter.py", line 146, in split
+    logger.info(f"  {s}")
+Message: '  Fold 2: Train [2023-12-26 \u2192 2024-12-24] (252 rows) | Test [2024-12-30 \u2192 2025-03-28] (61 rows)'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Python313\Lib\logging\__init__.py", line 1153, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python313\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2192' in position 92: character maps to <undefined>
+Call stack:
+  File "c:\Users\anees\Documents\Projects\AI FINANCE\run_backtest.py", line 200, in <module>
+    main()
+  File "c:\Users\anees\Documents\Projects\AI FINANCE\run_backtest.py", line 164, in main
+    print_walk_forward_results(splitter, df, engine, strategy, ticker)
+  File "c:\Users\anees\Documents\Projects\AI FINANCE\run_backtest.py", line 85, in print_walk_forward_results
+    for train_df, test_df, window in splitter.iter_splits(df):
+  File "C:\Users\anees\Documents\Projects\AI FINANCE\src\backtesting\splitter.py", line 154, in iter_splits
+    splits = self.split(df)
+  File "C:\Users\anees\Documents\Projects\AI FINANCE\src\backtesting\splitter.py", line 146, in split
+    logger.info(f"  {s}")
+Message: '  Fold 3: Train [2024-03-25 \u2192 2025-03-25] (251 rows) | Test [2025-03-31 \u2192 2025-06-30] (63 rows)'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Python313\Lib\logging\__init__.py", line 1153, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python313\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2192' in position 92: character maps to <undefined>
+Call stack:
+  File "c:\Users\anees\Documents\Projects\AI FINANCE\run_backtest.py", line 200, in <module>
+    main()
+  File "c:\Users\anees\Documents\Projects\AI FINANCE\run_backtest.py", line 164, in main
+    print_walk_forward_results(splitter, df, engine, strategy, ticker)
+  File "c:\Users\anees\Documents\Projects\AI FINANCE\run_backtest.py", line 85, in print_walk_forward_results
+    for train_df, test_df, window in splitter.iter_splits(df):
+  File "C:\Users\anees\Documents\Projects\AI FINANCE\src\backtesting\splitter.py", line 154, in iter_splits
+    splits = self.split(df)
+  File "C:\Users\anees\Documents\Projects\AI FINANCE\src\backtesting\splitter.py", line 146, in split
+    logger.info(f"  {s}")
+Message: '  Fold 4: Train [2024-06-25 \u2192 2025-06-25] (251 rows) | Test [2025-06-30 \u2192 2025-09-30] (65 rows)'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Python313\Lib\logging\__init__.py", line 1153, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python313\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2192' in position 92: character maps to <undefined>
+Call stack:
+  File "c:\Users\anees\Documents\Projects\AI FINANCE\run_backtest.py", line 200, in <module>
+    main()
+  File "c:\Users\anees\Documents\Projects\AI FINANCE\run_backtest.py", line 164, in main
+    print_walk_forward_results(splitter, df, engine, strategy, ticker)
+  File "c:\Users\anees\Documents\Projects\AI FINANCE\run_backtest.py", line 85, in print_walk_forward_results
+    for train_df, test_df, window in splitter.iter_splits(df):
+  File "C:\Users\anees\Documents\Projects\AI FINANCE\src\backtesting\splitter.py", line 154, in iter_splits
+    splits = self.split(df)
+  File "C:\Users\anees\Documents\Projects\AI FINANCE\src\backtesting\splitter.py", line 146, in split
+    logger.info(f"  {s}")
+Message: '  Fold 5: Train [2024-09-25 \u2192 2025-09-25] (251 rows) | Test [2025-09-30 \u2192 2025-12-30] (64 rows)'
+Arguments: ()
+Traceback (most recent call last):
+  File "c:\Users\anees\Documents\Projects\AI FINANCE\run_backtest.py", line 200, in <module>
+    main()
+    ~~~~^^
+  File "c:\Users\anees\Documents\Projects\AI FINANCE\run_backtest.py", line 164, in main
+    print_walk_forward_results(splitter, df, engine, strategy, ticker)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\anees\Documents\Projects\AI FINANCE\run_backtest.py", line 86, in print_walk_forward_results
+    print(f"\n  {window}")
+    ~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Python313\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2192' in position 30: character maps to <undefined>

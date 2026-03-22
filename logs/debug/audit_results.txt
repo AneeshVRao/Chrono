@@ -1,0 +1,79 @@
+============================================================
+  SYSTEM AUDIT -- Validation Test Suite
+============================================================
+
+=== TEST 1: No-Trade Scenario ===
+  [PASS] Total return is 0
+  [PASS] Equity stays at initial capital
+  [PASS] Zero trades
+  [PASS] Sharpe is 0
+
+=== TEST 2: Constant Price Series ===
+  [PASS] Returns are slightly negative (costs only)
+  [PASS] Max drawdown is very small
+
+=== TEST 3: Single Trade Scenario ===
+  [PASS] Exactly 1 trade entry
+  [PASS] Positive total return
+
+=== TEST 4: Position-Return Alignment ===
+  [PASS] Position shift is correct
+  [PASS] Signal at t=0 does NOT capture day 0 return
+  [PASS] Signal at t=0 captures day 1 return
+
+=== TEST 5: Transaction Costs ===
+  [PASS] Costly strategy returns < free strategy returns
+  [PASS] Costs applied only on change days
+  [PASS] Direction flip costs 2x
+
+=== TEST 6: Metrics Edge Cases ===
+  [PASS] Zero-std doesn't explode Sharpe
+  [PASS] Short series handled
+  [PASS] All-identical-negative returns: Sharpe safeguard fires (std=0)
+  [PASS] All-negative returns: CAGR > -1
+  [PASS] Near-total loss: CAGR is -1
+  [PASS] Single point returns empty report
+
+=== TEST 7: Trade Counting ===
+  [PASS] Exactly 2 trade entries
+
+=== TEST 8: Walk-Forward Split Integrity ===
+  [PASS] Got splits
+  [PASS] Fold 1: train ends before test starts
+  [PASS] Fold 1: gap >= 5 days
+  [PASS] Fold 1: no train/test overlap
+  [PASS] Fold 2: train ends before test starts
+  [PASS] Fold 2: gap >= 5 days
+  [PASS] Fold 2: no train/test overlap
+  [PASS] Fold 3: train ends before test starts
+  [PASS] Fold 3: gap >= 5 days
+  [PASS] Fold 3: no train/test overlap
+  [PASS] Fold 4: train ends before test starts
+  [PASS] Fold 4: gap >= 5 days
+  [PASS] Fold 4: no train/test overlap
+  [PASS] Fold 5: train ends before test starts
+  [PASS] Fold 5: gap >= 5 days
+  [PASS] Fold 5: no train/test overlap
+  [PASS] Fold 2 starts after fold 1
+  [PASS] Fold 3 starts after fold 2
+  [PASS] Fold 4 starts after fold 3
+  [PASS] Fold 5 starts after fold 4
+
+=== TEST 9: Feature Engineering Leakage Check ===
+  [PASS] SMA at t=250 unchanged after modifying t=300
+  [PASS] RSI uses only past data (no leakage from modified future)
+  [PASS] 5-day rolling return is backward-looking
+
+=== TEST 10: Target Variable Excluded from Features ===
+  [PASS] target_fwd_return NOT in features
+  [PASS] target_direction NOT in features
+  [PASS] raw OHLCV NOT in features
+
+=== TEST 11: Random Signals Sanity ===
+  [PASS] Random signals avg Sharpe near zero (within cost drag)
+  [PASS] No exploding Sharpe values
+
+============================================================
+  RESULTS: 49 passed, 0 failed
+============================================================
+  ALL CHECKS PASSED

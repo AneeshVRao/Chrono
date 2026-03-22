@@ -1,0 +1,87 @@
+======================================================================
+  PHASE 2 BACKTEST RESULTS -- AAPL
+======================================================================
+
+  Strategy               Momentum
+  Ticker                 AAPL
+  Period                 2018-02-20 → 2025-12-30
+  Total Return           78.67%
+  CAGR                   7.68%
+  Volatility (Ann.)      29.63%
+  Sharpe Ratio           0.266
+  Sortino Ratio          0.359
+  Max Drawdown           -61.52%
+  Max DD Duration        1338 days
+  Calmar Ratio           0.125
+  Win Rate               49.06%
+  Profit Factor          1.078
+  Total Trades           1910
+  Avg Trade Return       0.0485%
+
+  Strategy               Mean Reversion
+  Ticker                 AAPL
+  Period                 2018-02-20 → 2025-12-30
+  Total Return           -58.79%
+  CAGR                   -10.68%
+  Volatility (Ann.)      22.21%
+  Sharpe Ratio           -0.574
+  Sortino Ratio          -0.526
+  Max Drawdown           -67.24%
+  Max DD Duration        1893 days
+  Calmar Ratio           -0.159
+  Win Rate               46.03%
+  Profit Factor          0.891
+  Total Trades           906
+  Avg Trade Return       -0.0765%
+
+  Strategy               Buy & Hold
+  Ticker                 AAPL
+  Period                 2018-02-20 → 2025-12-30
+  Total Return           575.10%
+  CAGR                   27.56%
+  Volatility (Ann.)      30.83%
+  Sharpe Ratio           0.817
+  Sortino Ratio          1.130
+  Max Drawdown           -38.52%
+  Max DD Duration        354 days
+  Calmar Ratio           0.716
+  Win Rate               53.80%
+  Profit Factor          1.187
+  Total Trades           1972
+  Avg Trade Return       0.1158%
+
+======================================================================
+  COMPARISON TABLE
+======================================================================
+               Ticker                   Period Total Return     CAGR Volatility (Ann.) Sharpe Ratio Sortino Ratio Max Drawdown Max DD Duration Calmar Ratio Win Rate Profit Factor  Total Trades Avg Trade Return
+Strategy                                                                                                                                                                                                         
+Momentum         AAPL  2018-02-20 → 2025-12-30       78.67%    7.68%            29.63%        0.266         0.359      -61.52%       1338 days        0.125   49.06%         1.078          1910          0.0485%
+Mean Reversion   AAPL  2018-02-20 → 2025-12-30      -58.79%  -10.68%            22.21%       -0.574        -0.526      -67.24%       1893 days       -0.159   46.03%         0.891           906         -0.0765%
+Buy & Hold       AAPL  2018-02-20 → 2025-12-30      575.10%   27.56%            30.83%        0.817         1.130      -38.52%        354 days        0.716   53.80%         1.187          1972          0.1158%
+
+======================================================================
+  WALK-FORWARD SPLITS
+======================================================================
+  Fold 1: Train [2023-09-25 → 2024-09-25] (253 rows) | Test [2024-09-30 → 2024-12-30] (64 rows)
+  Fold 2: Train [2023-12-26 → 2024-12-24] (252 rows) | Test [2024-12-30 → 2025-03-28] (61 rows)
+  Fold 3: Train [2024-03-25 → 2025-03-25] (251 rows) | Test [2025-03-31 → 2025-06-30] (63 rows)
+  Fold 4: Train [2024-06-25 → 2025-06-25] (251 rows) | Test [2025-06-30 → 2025-09-30] (65 rows)
+  Fold 5: Train [2024-09-25 → 2025-09-25] (251 rows) | Test [2025-09-30 → 2025-12-30] (64 rows)
+
+  WALK-FORWARD: Momentum
+  --------------------------------------------------
+  Fold 1: Sharpe=-0.996  Return=-3.49%  MaxDD=-12.33%  Trades=59
+  Fold 2: Sharpe=-2.124  Return=-13.07%  MaxDD=-15.32%  Trades=60
+  Fold 3: Sharpe=+0.170  Return=+0.01%  MaxDD=-21.72%  Trades=59
+  Fold 4: Sharpe=+1.217  Return=+8.16%  MaxDD=-10.49%  Trades=64
+  Fold 5: Sharpe=+1.451  Return=+7.26%  MaxDD=-5.32%  Trades=62
+
+  WALK-FORWARD: Mean Reversion
+  --------------------------------------------------
+  Fold 1: Sharpe=-2.272  Return=-4.07%  MaxDD=-6.56%  Trades=18
+  Fold 2: Sharpe=+2.170  Return=+10.35%  MaxDD=-4.90%  Trades=28
+  Fold 3: Sharpe=+1.117  Return=+10.39%  MaxDD=-8.57%  Trades=14
+  Fold 4: Sharpe=+0.009  Return=+0.82%  MaxDD=-6.39%  Trades=29
+  Fold 5: Sharpe=+0.948  Return=+4.03%  MaxDD=-7.06%  Trades=44
+
+======================================================================
