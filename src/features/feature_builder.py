@@ -16,6 +16,7 @@ import numpy as np
 
 from src.features.technical_indicators import TechnicalIndicators
 from src.features.returns_features import ReturnsFeatures
+from src.features.regime_features import RegimeFeatures
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -36,6 +37,7 @@ class FeatureBuilder:
         # Sub-engines
         self.tech = TechnicalIndicators(feature_params)
         self.returns = ReturnsFeatures(feature_params)
+        self.regimes = RegimeFeatures(feature_params.get("regimes", {}))
 
         # Target config
         target_cfg = feature_params.get("target", {})
@@ -80,7 +82,10 @@ class FeatureBuilder:
         # 2. Returns & volatility
         df = self.returns.add_all(df)
 
-        # 3. Calendar features
+        # 3. Market Regime (Trending vs Ranging vs High Vol)
+        df = self.regimes.add_regime_features(df)
+
+        # 4. Calendar features
         df = self._add_calendar_features(df)
 
         # 4. Target variable (forward-looking — for labels only)
