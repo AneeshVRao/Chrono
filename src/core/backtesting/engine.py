@@ -1,4 +1,4 @@
-﻿"""
+"""
 Backtesting engine — simulates trades over time with transaction costs.
 
 Core principle: at time t, the engine only has access to information up to t.
@@ -104,11 +104,11 @@ class BacktestEngine:
         logger.info(f"Running backtest: {strategy_name} on {ticker} ({len(df)} bars)")
 
         # Align signals to DataFrame
-        signals = signals.reindex(df.index).fillna(0).astype(int).clip(-1, 1)
+        signals = signals.reindex(df.index).fillna(0).astype(float).clip(-1.0, 1.0)
 
         # -- Position tracking -------------------------------------------------
         # Signal at t -> position change at t+1 (next-bar execution)
-        positions = signals.shift(1).fillna(0).astype(int)
+        positions = signals.shift(1).fillna(0).astype(float)
 
         # Detect position changes (trades)
         position_changes = positions.diff().fillna(0)
@@ -183,7 +183,7 @@ class BacktestEngine:
                 in_trade = True
                 entry_date = date
                 entry_price = price
-                direction = int(pos)
+                direction = pos
 
             elif in_trade and (pos == 0 or pos != direction):
                 # Close trade
@@ -210,7 +210,7 @@ class BacktestEngine:
                     in_trade = True
                     entry_date = date
                     entry_price = price
-                    direction = int(pos)
+                    direction = pos
                 else:
                     in_trade = False
 
