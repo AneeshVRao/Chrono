@@ -42,7 +42,7 @@ data:
 # --- Feature Engineering -----------------------------------
 features:
   technical_indicators:
-    sma_windows: [10, 20, 50, 200]
+    sma_windows: [5, 10, 20, 50, 200]
     ema_windows: [12, 26, 50]
     rsi_period: 14
     macd:
@@ -57,18 +57,19 @@ features:
   returns:
     log_return_periods: [1, 5, 21]       # daily, weekly, monthly
     rolling_return_windows: [5, 10, 21, 63]
+    lagged_returns: [1, 2, 3, 5]         # past day lags for 1d return
 
   volatility:
-    rolling_windows: [10, 21, 63]        # realized vol windows
+    rolling_windows: [5, 10, 20, 63]     # realized vol windows
     ewm_span: 21                         # exponentially weighted vol
 
   rolling_stats:
-    windows: [10, 21, 63]
+    windows: [5, 10, 20, 63]
     metrics: ["mean", "std", "skew"]     # rolling statistics on returns
 
   target:
-    forward_return_period: 5             # predict 5-day forward return
-    classification_threshold: 0.0        # >0 = up, <=0 = down
+    forward_return_period: 1             # predict 1-day forward return
+    classification_threshold: 0.0        # >0 = 1, <=0 = 0
 
 # --- Backtesting Engine ------------------------------------
 backtesting:
@@ -97,3 +98,9 @@ backtesting:
       sma_window: 20                     # deviation from SMA
       sma_entry_threshold: -0.03        # buy if price 3% below SMA
       sma_exit_threshold: 0.02          # sell if price 2% above SMA
+
+# --- ML Pipeline ---------------------------------------
+ml_pipeline:
+  walk_forward:
+    train_window_days: 252               # approximately 1 year of trading days
+    test_window_days: 20                 # approximately 1 month of trading days

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Data cleaner — handles missing values, outliers, and resampling.
 Produces analysis-ready OHLCV data.
 """
@@ -119,7 +119,7 @@ class DataCleaner:
         # Ensure sorted by date
         df = df.sort_index()
 
-        logger.info(f"{ticker}: cleaned → {len(df)} rows")
+        logger.info(f"{ticker}: cleaned -> {len(df)} rows")
         return df
 
     def clean_all(self, raw_data: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]:

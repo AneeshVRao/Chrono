@@ -10,12 +10,19 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
+import numpy as np
 
 from src.utils.config_loader import Config
 from src.utils.logger import setup_logging, get_logger
 from src.data.fetcher import DataFetcher
 from src.data.cleaner import DataCleaner
 from src.features.feature_builder import FeatureBuilder
+from src.models.linear_model import LogisticRegressionModel
+from src.models.tree_model import RandomForestModel
+from src.models.xgb_model import XGBoostModel
+from src.models.ensemble_model import EnsembleModel
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, confusion_matrix
 
 
 class DataPipeline:
@@ -58,6 +65,15 @@ class DataPipeline:
 
         # Step 3: Features
         featured_data = self._build_features(cleaned_data)
+        
+        # Step 4 & 5: Walk-Forward ML (Train & Predict)
+        featured_data = self._walk_forward_ml(featured_data)
+        
+        # Step 6: ML Out-of-Sample Evaluation
+        self._evaluate_ml(featured_data)
+        
+        # Save final featured data with predictions
+        self.builder.save_features(featured_data)
 
         elapsed = time.time() - t0
         self.logger.info(f"Pipeline complete in {elapsed:.1f}s -- "
@@ -88,5 +104,171 @@ class DataPipeline:
     def _build_features(self, cleaned_data: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]:
         self.logger.info(">> STEP 3: Engineering features...")
         featured = self.builder.build_all(cleaned_data)
-        self.builder.save_features(featured)
         return featured
+
+    def _walk_forward_ml(self, featured_data: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]:
+        self.logger.info(">> STEP 4 & 5: Walk-forward ML training and predictions...")
+        
+        # Initialize prediction columns
+        model_names = ["LogisticRegression", "RandomForest", "XGBoost", "Ensemble"]
+        for ticker, df in featured_data.items():
+            for name in model_names:
+                df[f"pred_{name}"] = 0  # flat by default
+                # Also store prediction probabilities for evaluation
+                df[f"proba_{name}"] = 0.5
+        
+        # Combine all ticker data for time-based splitting
+        combined = pd.concat(featured_data.values(), axis=0).sort_index()
+        all_dates = combined.index.unique().sort_values()
+        
+        # Read parameters (defaults if not found)
+        ml_cfg = getattr(self.cfg, "ml_pipeline", {})
+        wf_cfg = ml_cfg.get("walk_forward", {}) if ml_cfg else {}
+        train_window = wf_cfg.get("train_window_days", 252)
+        test_window = wf_cfg.get("test_window_days", 20)
+        
+        num_dates = len(all_dates)
+        if num_dates <= train_window:
+            self.logger.warning("Not enough data to train ML models with the given train_window.")
+            return featured_data
+            
+        start_idx = train_window
+        fold = 1
+        
+        while start_idx < num_dates:
+            test_end_idx = min(start_idx + test_window, num_dates)
+            train_start_idx = max(0, start_idx - train_window)
+            
+            train_dates = all_dates[train_start_idx : start_idx]
+            test_dates = all_dates[start_idx : test_end_idx]
+            
+            t_train_start, t_train_end = train_dates[0], train_dates[-1]
+            t_test_start, t_test_end = test_dates[0], test_dates[-1]
+            
+            self.logger.info(f"  Fold {fold} | Train: {t_train_start.date()} -> {t_train_end.date()} | Test: {t_test_start.date()} -> {t_test_end.date()}")
+            
+            # Extract train data
+            train_df = combined[(combined.index >= t_train_start) & (combined.index <= t_train_end)]
+            feature_cols = self.builder.get_feature_columns(train_df)
+            
+            # Robust filling logic: forward fill absolute values, then 0 for leftover NaNs
+            X_train_raw = train_df[feature_cols].ffill().fillna(0)
+            y_train = train_df["target_direction"].values
+            
+            if len(np.unique(y_train)) < 2:
+                self.logger.warning("    Not enough classes in training window, skipping test predictions.")
+                start_idx += test_window
+                fold += 1
+                continue
+                
+            # CRITICAL FIX: Standard Scaling
+            scaler = StandardScaler()
+            X_train = scaler.fit_transform(X_train_raw)
+                
+            # Base Models
+            lr_model = LogisticRegressionModel({"model_kwargs": {"max_iter": 2000, "random_state": 42}})
+            rf_model = RandomForestModel({"model_kwargs": {"n_estimators": 50, "max_depth": 5, "random_state": 42}})
+            xgb_model = XGBoostModel({"model_kwargs": {"n_estimators": 50, "max_depth": 3, "learning_rate": 0.05, "eval_metric": "logloss", "random_state": 42}})
+            
+            # Ensemble wrapper with soft voting averaging
+            ensemble_model = EnsembleModel(models=[lr_model, rf_model, xgb_model], voting="soft")
+            
+            # Fit all models (ensemble delegates to internal models automatically)
+            ensemble_model.fit(X_train, y_train)
+            
+            models_to_eval = {
+                "LogisticRegression": lr_model,
+                "RandomForest": rf_model,
+                "XGBoost": xgb_model,
+                "Ensemble": ensemble_model
+            }
+            
+            # Predict on the precisely aligned test window out-of-sample block
+            for ticker, df in featured_data.items():
+                ticker_test_mask = (df.index >= t_test_start) & (df.index <= t_test_end)
+                if not ticker_test_mask.any():
+                    continue
+                    
+                X_test_raw = df.loc[ticker_test_mask, feature_cols].ffill().fillna(0)
+                if not X_test_raw.empty:
+                    X_test = scaler.transform(X_test_raw)
+                    
+                    for m_name, mdl in models_to_eval.items():
+                        preds = mdl.predict(X_test)
+                        probas = mdl.predict_proba(X_test)
+                        
+                        # Validate predictions safely
+                        invalid_mask = np.isnan(probas)
+                        if invalid_mask.any():
+                            probas[invalid_mask] = 0.5
+                            preds[invalid_mask] = 0
+                            
+                        df.loc[ticker_test_mask, f"pred_{m_name}"] = preds
+                        df.loc[ticker_test_mask, f"proba_{m_name}"] = probas
+                
+            start_idx += test_window
+            fold += 1
+            
+        return featured_data
+
+    def _evaluate_ml(self, featured_data: dict[str, pd.DataFrame]) -> None:
+        """Evaluate ML metrics across strictly Out-Of-Sample prediction zones."""
+        self.logger.info(">> STEP 6: Validating Out-of-Sample Machine Learning Metrics...")
+        
+        # We define out-of-sample strictly across predictions not equaling initialization (0.5 for proba)
+        combined = pd.concat(featured_data.values(), axis=0)
+        out_dir = self.cfg.project_root / "logs" / "metrics"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        
+        model_names = ["LogisticRegression", "RandomForest", "XGBoost", "Ensemble"]
+        
+        results_str = "\n" + "="*60 + "\n  OUT-OF-SAMPLE ML PERFORMANCE\n" + "="*60 + "\n"
+        
+        for name in model_names:
+            proba_col = f"proba_{name}"
+            pred_col = f"pred_{name}"
+            
+            if proba_col not in combined.columns:
+                continue
+                
+            # Filter solely for the records that received predictions inside their Walk-Forward fold
+            mask = combined[proba_col] != 0.5
+            eval_df = combined[mask].dropna(subset=["target_direction"])
+            
+            if eval_df.empty:
+                self.logger.warning(f"No valid out-of-sample records evaluated for {name}.")
+                continue
+                
+            y_true = eval_df["target_direction"].values
+            y_pred = eval_df[pred_col].values
+            y_prob = eval_df[proba_col].values
+            
+            acc = accuracy_score(y_true, y_pred)
+            prec = precision_score(y_true, y_pred, zero_division=0)
+            rec = recall_score(y_true, y_pred, zero_division=0)
+            f1 = f1_score(y_true, y_pred, zero_division=0)
+            
+            try:
+                auc = roc_auc_score(y_true, y_prob)
+            except ValueError:
+                auc = 0.5 # Fail smoothly if only 1 class in truth mask
+                
+            cm = confusion_matrix(y_true, y_pred)
+            
+            metrics_msg = (
+                f"\nModel: {name}\n"
+                f"  Accuracy:  {acc:.4f}\n"
+                f"  Precision: {prec:.4f}\n"
+                f"  Recall:    {rec:.4f}\n"
+                f"  F1 Score:  {f1:.4f}\n"
+                f"  ROC-AUC:   {auc:.4f}\n"
+                f"  Confusion Matrix:\n"
+                f"    [ {cm[0][0]:>4d} | {cm[0][1]:>4d} ] (True Neg | False Pos)\n"
+                f"    [ {cm[1][0]:>4d} | {cm[1][1]:>4d} ] (False Neg | True Pos)\n"
+            )
+            self.logger.info(metrics_msg.replace("\n", " | "))
+            results_str += metrics_msg
+            
+        with open(out_dir / "ml_evaluation.txt", "w") as f:
+            f.write(results_str)
+        self.logger.info("Evaluation metrics saved to 'logs/metrics/'")

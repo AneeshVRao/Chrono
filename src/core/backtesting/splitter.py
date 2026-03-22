@@ -1,4 +1,4 @@
-"""
+﻿"""
 Walk-forward time-series splitter.
 Implements expanding/rolling window train-test splits that respect temporal order.
 NEVER shuffles data. Maintains a configurable gap between train and test.
@@ -39,8 +39,8 @@ class SplitWindow:
     def __repr__(self) -> str:
         return (
             f"Fold {self.fold}: "
-            f"Train [{self.train_start.date()} → {self.train_end.date()}] ({self.train_size} rows) | "
-            f"Test [{self.test_start.date()} → {self.test_end.date()}] ({self.test_size} rows)"
+            f"Train [{self.train_start.date()} -> {self.train_end.date()}] ({self.train_size} rows) | "
+            f"Test [{self.test_start.date()} -> {self.test_end.date()}] ({self.test_size} rows)"
         )
 
 

@@ -1,0 +1,361 @@
+﻿[2026-03-22 13:25:13] INFO     pipeline.backtest              | ======================================================================
+[2026-03-22 13:25:13] INFO     pipeline.backtest              |   BACKTEST RUNNER -- strategies x tickers
+[2026-03-22 13:25:13] INFO     pipeline.backtest              | ======================================================================
+[2026-03-22 13:25:13] INFO     pipeline.backtest              | >> Processing AAPL...
+[2026-03-22 13:25:14] INFO     src.core.strategies.momentum   | Momentum signals: 1203 long, 641 short, 141 flat (lookback=21d)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    | Running backtest: Momentum on AAPL (1985 bars)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    |   Completed: 79 trade entries, Sharpe=0.230, Return=64.52%
+[2026-03-22 13:25:14] INFO     src.core.strategies.mean_reversion | Mean Reversion signals: 227 long, 658 short, 1100 flat (RSI bounds=30/70)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    | Running backtest: Mean Reversion on AAPL (1985 bars)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    |   Completed: 29 trade entries, Sharpe=-0.507, Return=-53.95%
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(LogisticRegression) on AAPL (1985 bars)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    |   Completed: 204 trade entries, Sharpe=0.456, Return=129.26%
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(RandomForest) on AAPL (1985 bars)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    |   Completed: 263 trade entries, Sharpe=0.253, Return=70.31%
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on AAPL (1985 bars)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    |   Completed: 255 trade entries, Sharpe=0.218, Return=62.83%
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on AAPL (1985 bars)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    |   Completed: 1 trade entries, Sharpe=0.845, Return=630.13%
+[2026-03-22 13:25:14] INFO     pipeline.backtest              | Backtest complete in 0.5s -- 1 tickers, 6 strategies
+[2026-03-22 13:25:14] INFO     src.core.backtesting.splitter  | Walk-forward splits created: 5 folds
+[2026-03-22 13:25:14] INFO     src.core.backtesting.splitter  |   Fold 1: Train [2023-09-25 -> 2024-09-25] (253 rows) | Test [2024-09-30 -> 2024-12-30] (64 rows)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.splitter  |   Fold 2: Train [2023-12-26 -> 2024-12-24] (252 rows) | Test [2024-12-30 -> 2025-03-28] (61 rows)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.splitter  |   Fold 3: Train [2024-03-25 -> 2025-03-25] (251 rows) | Test [2025-03-31 -> 2025-06-30] (63 rows)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.splitter  |   Fold 4: Train [2024-06-25 -> 2025-06-25] (251 rows) | Test [2025-06-30 -> 2025-09-30] (65 rows)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.splitter  |   Fold 5: Train [2024-09-25 -> 2025-09-25] (251 rows) | Test [2025-09-30 -> 2025-12-30] (64 rows)
+[2026-03-22 13:25:14] INFO     src.core.strategies.momentum   | Momentum signals: 41 long, 18 short, 5 flat (lookback=21d)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    | Running backtest: Momentum on AAPL (64 bars)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    |   Completed: 3 trade entries, Sharpe=-0.996, Return=-3.49%
+[2026-03-22 13:25:14] INFO     src.core.strategies.momentum   | Momentum signals: 23 long, 35 short, 3 flat (lookback=21d)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    | Running backtest: Momentum on AAPL (61 bars)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    |   Completed: 4 trade entries, Sharpe=-2.124, Return=-13.07%
+[2026-03-22 13:25:14] INFO     src.core.strategies.momentum   | Momentum signals: 15 long, 40 short, 8 flat (lookback=21d)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    | Running backtest: Momentum on AAPL (63 bars)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    |   Completed: 5 trade entries, Sharpe=0.170, Return=0.01%
+[2026-03-22 13:25:14] INFO     src.core.strategies.momentum   | Momentum signals: 61 long, 2 short, 2 flat (lookback=21d)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    | Running backtest: Momentum on AAPL (65 bars)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    |   Completed: 3 trade entries, Sharpe=1.217, Return=8.16%
+[2026-03-22 13:25:14] INFO     src.core.strategies.momentum   | Momentum signals: 61 long, 1 short, 2 flat (lookback=21d)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    | Running backtest: Momentum on AAPL (64 bars)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    |   Completed: 1 trade entries, Sharpe=1.451, Return=7.26%
+
+============================================================
+  WALK-FORWARD VALIDATION: Momentum -- AAPL
+============================================================
+
+  Fold 1 (2024-09-30 -> 2024-12-30)
+    Sharpe: -0.996  |  Return: -3.49%  |  MaxDD: -12.33%  |  Trades: 3
+
+  Fold 2 (2024-12-30 -> 2025-03-28)
+    Sharpe: -2.124  |  Return: -13.07%  |  MaxDD: -15.32%  |  Trades: 4
+
+  Fold 3 (2025-03-31 -> 2025-06-30)
+    Sharpe: 0.170  |  Return: 0.01%  |  MaxDD: -21.72%  |  Trades: 5
+
+  Fold 4 (2025-06-30 -> 2025-09-30)
+    Sharpe: 1.217  |  Return: 8.16%  |  MaxDD: -10.49%  |  Trades: 3
+
+  Fold 5 (2025-09-30 -> 2025-12-30)
+    Sharpe: 1.451  |  Return: 7.26%  |  MaxDD: -5.32%  |  Trades: 1
+
+  --------------------------------------------------
+  Walk-Forward Average:
+    Sharpe: -0.056  |  Return: -0.23%  |  MaxDD: -13.04%
+[2026-03-22 13:25:14] INFO     src.core.backtesting.splitter  | Walk-forward splits created: 5 folds
+[2026-03-22 13:25:14] INFO     src.core.backtesting.splitter  |   Fold 1: Train [2023-09-25 -> 2024-09-25] (253 rows) | Test [2024-09-30 -> 2024-12-30] (64 rows)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.splitter  |   Fold 2: Train [2023-12-26 -> 2024-12-24] (252 rows) | Test [2024-12-30 -> 2025-03-28] (61 rows)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.splitter  |   Fold 3: Train [2024-03-25 -> 2025-03-25] (251 rows) | Test [2025-03-31 -> 2025-06-30] (63 rows)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.splitter  |   Fold 4: Train [2024-06-25 -> 2025-06-25] (251 rows) | Test [2025-06-30 -> 2025-09-30] (65 rows)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.splitter  |   Fold 5: Train [2024-09-25 -> 2025-09-25] (251 rows) | Test [2025-09-30 -> 2025-12-30] (64 rows)
+[2026-03-22 13:25:14] INFO     src.core.strategies.mean_reversion | Mean Reversion signals: 0 long, 19 short, 45 flat (RSI bounds=30/70)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    | Running backtest: Mean Reversion on AAPL (64 bars)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    |   Completed: 1 trade entries, Sharpe=-2.272, Return=-4.07%
+[2026-03-22 13:25:14] INFO     src.core.strategies.mean_reversion | Mean Reversion signals: 28 long, 0 short, 33 flat (RSI bounds=30/70)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    | Running backtest: Mean Reversion on AAPL (61 bars)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    |   Completed: 2 trade entries, Sharpe=2.170, Return=10.35%
+[2026-03-22 13:25:14] INFO     src.core.strategies.mean_reversion | Mean Reversion signals: 13 long, 0 short, 50 flat (RSI bounds=30/70)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    | Running backtest: Mean Reversion on AAPL (63 bars)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    |   Completed: 1 trade entries, Sharpe=1.117, Return=10.39%
+[2026-03-22 13:25:14] INFO     src.core.strategies.mean_reversion | Mean Reversion signals: 0 long, 29 short, 36 flat (RSI bounds=30/70)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    | Running backtest: Mean Reversion on AAPL (65 bars)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    |   Completed: 2 trade entries, Sharpe=0.009, Return=0.82%
+[2026-03-22 13:25:14] INFO     src.core.strategies.mean_reversion | Mean Reversion signals: 0 long, 42 short, 22 flat (RSI bounds=30/70)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    | Running backtest: Mean Reversion on AAPL (64 bars)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    |   Completed: 2 trade entries, Sharpe=0.948, Return=4.03%
+
+============================================================
+  WALK-FORWARD VALIDATION: Mean Reversion -- AAPL
+============================================================
+
+  Fold 1 (2024-09-30 -> 2024-12-30)
+    Sharpe: -2.272  |  Return: -4.07%  |  MaxDD: -6.56%  |  Trades: 1
+
+  Fold 2 (2024-12-30 -> 2025-03-28)
+    Sharpe: 2.170  |  Return: 10.35%  |  MaxDD: -4.90%  |  Trades: 2
+
+  Fold 3 (2025-03-31 -> 2025-06-30)
+    Sharpe: 1.117  |  Return: 10.39%  |  MaxDD: -8.57%  |  Trades: 1
+
+  Fold 4 (2025-06-30 -> 2025-09-30)
+    Sharpe: 0.009  |  Return: 0.82%  |  MaxDD: -6.39%  |  Trades: 2
+
+  Fold 5 (2025-09-30 -> 2025-12-30)
+    Sharpe: 0.948  |  Return: 4.03%  |  MaxDD: -7.06%  |  Trades: 2
+
+  --------------------------------------------------
+  Walk-Forward Average:
+    Sharpe: 0.394  |  Return: 4.30%  |  MaxDD: -6.70%
+[2026-03-22 13:25:14] INFO     src.core.backtesting.splitter  | Walk-forward splits created: 5 folds
+[2026-03-22 13:25:14] INFO     src.core.backtesting.splitter  |   Fold 1: Train [2023-09-25 -> 2024-09-25] (253 rows) | Test [2024-09-30 -> 2024-12-30] (64 rows)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.splitter  |   Fold 2: Train [2023-12-26 -> 2024-12-24] (252 rows) | Test [2024-12-30 -> 2025-03-28] (61 rows)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.splitter  |   Fold 3: Train [2024-03-25 -> 2025-03-25] (251 rows) | Test [2025-03-31 -> 2025-06-30] (63 rows)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.splitter  |   Fold 4: Train [2024-06-25 -> 2025-06-25] (251 rows) | Test [2025-06-30 -> 2025-09-30] (65 rows)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.splitter  |   Fold 5: Train [2024-09-25 -> 2025-09-25] (251 rows) | Test [2025-09-30 -> 2025-12-30] (64 rows)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(LogisticRegression) on AAPL (64 bars)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    |   Completed: 15 trade entries, Sharpe=0.259, Return=1.66%
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(LogisticRegression) on AAPL (61 bars)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    |   Completed: 15 trade entries, Sharpe=-1.930, Return=-7.16%
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(LogisticRegression) on AAPL (63 bars)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    |   Completed: 8 trade entries, Sharpe=1.779, Return=3.93%
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(LogisticRegression) on AAPL (65 bars)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    |   Completed: 7 trade entries, Sharpe=1.876, Return=11.33%
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(LogisticRegression) on AAPL (64 bars)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    |   Completed: 6 trade entries, Sharpe=1.972, Return=9.42%
+
+============================================================
+  WALK-FORWARD VALIDATION: ML_Strategy(LogisticRegression) -- AAPL
+============================================================
+
+  Fold 1 (2024-09-30 -> 2024-12-30)
+    Sharpe: 0.259  |  Return: 1.66%  |  MaxDD: -6.00%  |  Trades: 15
+
+  Fold 2 (2024-12-30 -> 2025-03-28)
+    Sharpe: -1.930  |  Return: -7.16%  |  MaxDD: -8.54%  |  Trades: 15
+
+  Fold 3 (2025-03-31 -> 2025-06-30)
+    Sharpe: 1.779  |  Return: 3.93%  |  MaxDD: -1.28%  |  Trades: 8
+
+  Fold 4 (2025-06-30 -> 2025-09-30)
+    Sharpe: 1.876  |  Return: 11.33%  |  MaxDD: -5.56%  |  Trades: 7
+
+  Fold 5 (2025-09-30 -> 2025-12-30)
+    Sharpe: 1.972  |  Return: 9.42%  |  MaxDD: -4.96%  |  Trades: 6
+
+  --------------------------------------------------
+  Walk-Forward Average:
+    Sharpe: 0.791  |  Return: 3.83%  |  MaxDD: -5.27%
+[2026-03-22 13:25:14] INFO     src.core.backtesting.splitter  | Walk-forward splits created: 5 folds
+[2026-03-22 13:25:14] INFO     src.core.backtesting.splitter  |   Fold 1: Train [2023-09-25 -> 2024-09-25] (253 rows) | Test [2024-09-30 -> 2024-12-30] (64 rows)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.splitter  |   Fold 2: Train [2023-12-26 -> 2024-12-24] (252 rows) | Test [2024-12-30 -> 2025-03-28] (61 rows)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.splitter  |   Fold 3: Train [2024-03-25 -> 2025-03-25] (251 rows) | Test [2025-03-31 -> 2025-06-30] (63 rows)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.splitter  |   Fold 4: Train [2024-06-25 -> 2025-06-25] (251 rows) | Test [2025-06-30 -> 2025-09-30] (65 rows)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.splitter  |   Fold 5: Train [2024-09-25 -> 2025-09-25] (251 rows) | Test [2025-09-30 -> 2025-12-30] (64 rows)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(RandomForest) on AAPL (64 bars)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    |   Completed: 15 trade entries, Sharpe=0.259, Return=1.66%
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(RandomForest) on AAPL (61 bars)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    |   Completed: 15 trade entries, Sharpe=-1.930, Return=-7.16%
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(RandomForest) on AAPL (63 bars)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    |   Completed: 8 trade entries, Sharpe=1.779, Return=3.93%
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(RandomForest) on AAPL (65 bars)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    |   Completed: 10 trade entries, Sharpe=1.501, Return=9.00%
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(RandomForest) on AAPL (64 bars)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    |   Completed: 11 trade entries, Sharpe=1.929, Return=8.91%
+
+============================================================
+  WALK-FORWARD VALIDATION: ML_Strategy(RandomForest) -- AAPL
+============================================================
+
+  Fold 1 (2024-09-30 -> 2024-12-30)
+    Sharpe: 0.259  |  Return: 1.66%  |  MaxDD: -6.00%  |  Trades: 15
+
+  Fold 2 (2024-12-30 -> 2025-03-28)
+    Sharpe: -1.930  |  Return: -7.16%  |  MaxDD: -8.54%  |  Trades: 15
+
+  Fold 3 (2025-03-31 -> 2025-06-30)
+    Sharpe: 1.779  |  Return: 3.93%  |  MaxDD: -1.28%  |  Trades: 8
+
+  Fold 4 (2025-06-30 -> 2025-09-30)
+    Sharpe: 1.501  |  Return: 9.00%  |  MaxDD: -5.56%  |  Trades: 10
+
+  Fold 5 (2025-09-30 -> 2025-12-30)
+    Sharpe: 1.929  |  Return: 8.91%  |  MaxDD: -3.65%  |  Trades: 11
+
+  --------------------------------------------------
+  Walk-Forward Average:
+    Sharpe: 0.708  |  Return: 3.27%  |  MaxDD: -5.01%
+[2026-03-22 13:25:14] INFO     src.core.backtesting.splitter  | Walk-forward splits created: 5 folds
+[2026-03-22 13:25:14] INFO     src.core.backtesting.splitter  |   Fold 1: Train [2023-09-25 -> 2024-09-25] (253 rows) | Test [2024-09-30 -> 2024-12-30] (64 rows)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.splitter  |   Fold 2: Train [2023-12-26 -> 2024-12-24] (252 rows) | Test [2024-12-30 -> 2025-03-28] (61 rows)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.splitter  |   Fold 3: Train [2024-03-25 -> 2025-03-25] (251 rows) | Test [2025-03-31 -> 2025-06-30] (63 rows)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.splitter  |   Fold 4: Train [2024-06-25 -> 2025-06-25] (251 rows) | Test [2025-06-30 -> 2025-09-30] (65 rows)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.splitter  |   Fold 5: Train [2024-09-25 -> 2025-09-25] (251 rows) | Test [2025-09-30 -> 2025-12-30] (64 rows)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on AAPL (64 bars)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    |   Completed: 15 trade entries, Sharpe=0.259, Return=1.66%
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on AAPL (61 bars)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    |   Completed: 15 trade entries, Sharpe=-1.930, Return=-7.16%
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on AAPL (63 bars)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    |   Completed: 8 trade entries, Sharpe=1.779, Return=3.93%
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on AAPL (65 bars)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    |   Completed: 10 trade entries, Sharpe=1.501, Return=9.00%
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on AAPL (64 bars)
+[2026-03-22 13:25:14] INFO     src.core.backtesting.engine    |   Completed: 10 trade entries, Sharpe=1.571, Return=7.43%
+
+============================================================
+  WALK-FORWARD VALIDATION: ML_Strategy(Ensemble) -- AAPL
+============================================================
+
+  Fold 1 (2024-09-30 -> 2024-12-30)
+    Sharpe: 0.259  |  Return: 1.66%  |  MaxDD: -6.00%  |  Trades: 15
+
+  Fold 2 (2024-12-30 -> 2025-03-28)
+    Sharpe: -1.930  |  Return: -7.16%  |  MaxDD: -8.54%  |  Trades: 15
+
+  Fold 3 (2025-03-31 -> 2025-06-30)
+    Sharpe: 1.779  |  Return: 3.93%  |  MaxDD: -1.28%  |  Trades: 8
+
+  Fold 4 (2025-06-30 -> 2025-09-30)
+    Sharpe: 1.501  |  Return: 9.00%  |  MaxDD: -5.56%  |  Trades: 10
+
+  Fold 5 (2025-09-30 -> 2025-12-30)
+    Sharpe: 1.571  |  Return: 7.43%  |  MaxDD: -4.96%  |  Trades: 10
+
+  --------------------------------------------------
+  Walk-Forward Average:
+    Sharpe: 0.636  |  Return: 2.97%  |  MaxDD: -5.27%
+
+
+======================================================================
+  BACKTEST RESULTS SUMMARY
+======================================================================
+
+                                Ticker                    Period Total Return    CAGR Volatility (Ann.) Sharpe Ratio Sortino Ratio Max Drawdown Max DD Duration Calmar Ratio Win Rate Profit Factor  Total Trades Avg Trade Return
+Strategy                                                                                                                                                                                                                          
+Momentum                          AAPL  2018-02-07 -> 2025-12-30       64.52%   6.52%            29.66%        0.230         0.313      -61.52%       1338 days        0.106   29.11%         1.466            79          1.2917%
+Mean Reversion                    AAPL  2018-02-07 -> 2025-12-30      -53.95%  -9.38%            22.26%       -0.507        -0.681      -67.24%       1893 days       -0.139   48.28%         0.536            29         -2.0656%
+ML_Strategy(LogisticRegression)   AAPL  2018-02-07 -> 2025-12-30      129.26%  11.11%            18.08%        0.456         0.652      -25.35%        587 days        0.438   66.67%         1.882           204          0.5921%
+ML_Strategy(RandomForest)         AAPL  2018-02-07 -> 2025-12-30       70.31%   6.99%            16.75%        0.253         0.366      -30.02%       1001 days        0.233   64.26%         1.466           263          0.3466%
+ML_Strategy(Ensemble)             AAPL  2018-02-07 -> 2025-12-30       62.83%   6.38%            17.17%        0.218         0.313      -29.91%       1001 days        0.213   63.14%         1.460           255          0.3365%
+Buy & Hold                        AAPL  2018-02-07 -> 2025-12-30      630.13%  28.71%            30.85%        0.845         1.172      -38.52%        354 days        0.745  100.00%           inf             1        630.1324%
+
+  Equity Curve (Momentum -- AAPL):
+  Date                  Value   Cum Return
+  ----------------------------------------
+  2018-03-31     $     82,917     -17.08%
+  2018-06-30     $     78,568     -21.43%
+  2018-09-30     $     89,386     -10.61%
+  2018-12-31     $    107,938       7.94%
+  2019-03-31     $    132,684      32.68%
+  2019-06-30     $    133,478      33.48%
+  2019-09-30     $    133,480      33.48%
+  2019-12-31     $    175,532      75.53%
+  2020-03-31     $    199,632      99.63%
+  2020-06-30     $    233,417     133.42%
+  2020-09-30     $    271,666     171.67%
+  2020-12-31     $    242,961     142.96%
+  2021-03-31     $    237,926     137.93%
+  2021-06-30     $    238,807     138.81%
+  2021-09-30     $    262,062     162.06%
+  2021-12-31     $    295,819     195.82%
+  2022-03-31     $    258,803     158.80%
+  2022-06-30     $    280,489     180.49%
+  2022-09-30     $    323,166     223.17%
+  2022-12-31     $    232,269     132.27%
+  2023-03-31     $    240,953     140.95%
+  2023-06-30     $    283,822     183.82%
+  2023-09-30     $    232,925     132.92%
+  2023-12-31     $    212,156     112.16%
+  2024-03-31     $    202,002     102.00%
+  2024-06-30     $    209,459     109.46%
+  2024-09-30     $    171,844      71.84%
+  2024-12-31     $    164,682      64.68%
+  2025-03-31     $    141,516      41.52%
+  2025-06-30     $    141,678      41.68%
+  2025-09-30     $    153,234      53.23%
+  2025-12-31     $    164,524      64.52%
+
+  Equity Curve (Mean Reversion -- AAPL):
+  Date                  Value   Cum Return
+  ----------------------------------------
+  2018-03-31     $    111,731      11.73%
+  2018-06-30     $    111,896      11.90%
+  2018-09-30     $     98,822      -1.18%
+  2018-12-31     $     91,421      -8.58%
+  2019-03-31     $     86,537     -13.46%
+  2019-06-30     $     89,416     -10.58%
+  2019-09-30     $     89,416     -10.58%
+  2019-12-31     $     72,489     -27.51%
+  2020-03-31     $     65,285     -34.72%
+  2020-06-30     $     60,615     -39.38%
+  2020-09-30     $     46,959     -53.04%
+  2020-12-31     $     48,312     -51.69%
+  2021-03-31     $     50,582     -49.42%
+  2021-06-30     $     52,082     -47.92%
+  2021-09-30     $     48,228     -51.77%
+  2021-12-31     $     42,399     -57.60%
+  2022-03-31     $     43,651     -56.35%
+  2022-06-30     $     43,651     -56.35%
+  2022-09-30     $     42,980     -57.02%
+  2022-12-31     $     47,075     -52.92%
+  2023-03-31     $     49,794     -50.21%
+  2023-06-30     $     42,193     -57.81%
+  2023-09-30     $     46,046     -53.95%
+  2023-12-31     $     45,245     -54.75%
+  2024-03-31     $     48,721     -51.28%
+  2024-06-30     $     44,279     -55.72%
+  2024-09-30     $     42,422     -57.58%
+  2024-12-31     $     40,983     -59.02%
+  2025-03-31     $     47,267     -52.73%
+  2025-06-30     $     44,295     -55.71%
+  2025-09-30     $     44,656     -55.34%
+  2025-12-31     $     46,046     -53.95%
+
+  Equity Curve (ML_Strategy(LogisticRegression) -- AAPL):
+  Date                  Value   Cum Return
+  ----------------------------------------
+  2018-03-31     $    100,000       0.00%
+  2018-06-30     $    100,000       0.00%
+  2018-09-30     $    100,000       0.00%
+  2018-12-31     $    100,000       0.00%
+  2019-03-31     $    105,082       5.08%
+  2019-06-30     $     94,212      -5.79%
+  2019-09-30     $     93,676      -6.32%
+  2019-12-31     $    111,783      11.78%
+  2020-03-31     $    113,663      13.66%
+  2020-06-30     $    133,936      33.94%
+  2020-09-30     $    172,665      72.67%
+  2020-12-31     $    187,920      87.92%
+  2021-03-31     $    181,918      81.92%
+  2021-06-30     $    195,125      95.13%
+  2021-09-30     $    187,787      87.79%
+  2021-12-31     $    219,044     119.04%
+  2022-03-31     $    187,116      87.12%
+  2022-06-30     $    188,699      88.70%
+  2022-09-30     $    188,699      88.70%
+  2022-12-31     $    188,699      88.70%
+  2023-03-31     $    197,555      97.56%
+  2023-06-30     $    232,352     132.35%
+  2023-09-30     $    205,650     105.65%
+  2023-12-31     $    211,608     111.61%
+  2024-03-31     $    187,918      87.92%
+  2024-06-30     $    199,272      99.27%
+  2024-09-30     $    188,218      88.22%
+  2024-12-31     $    189,987      89.99%
+  2025-03-31     $    181,086      81.09%
+  2025-06-30     $    188,010      88.01%
+  2025-09-30     $    209,310     109.31%
+  2025-12-31     $    229,257     129.26%
+
+======================================================================
+  Pipeline completed in 0.8s
+  Tickers: 1  |  Strategies: 6
+======================================================================
+
+>> PHASE 3 CONNECTION POINT:
+   To plug in ML predictions, create a class that inherits BaseStrategy
+   and implements generate_signals(df) -> pd.Series of {+1, 0, -1}.
+   The backtesting engine accepts any signal source -- rule-based or ML.
+   Example:
+     class MLStrategy(BaseStrategy):
+         def generate_signals(self, df):
+             predictions = self.model.predict(df[feature_cols])
+             return pd.Series(np.sign(predictions), index=df.index)
