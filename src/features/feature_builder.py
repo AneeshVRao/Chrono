@@ -51,9 +51,23 @@ class FeatureBuilder:
         It exists only for convenience — the ML module will handle separation.
         """
         df["target_fwd_return"] = df["close"].pct_change(periods=self.fwd_period).shift(-self.fwd_period)
-        # Keep targets as NaN if forward return is not calculable, to prevent false negative signals
-        direction = (df["target_fwd_return"] > self.cls_threshold).astype(float)
-        df["target_direction"] = direction.where(df["target_fwd_return"].notna(), np.nan)
+        
+        # Phase 1 & 3: Noise cancellation - Ignore weak signals
+        # Threshold bounds defined at 0.5% return magnitude
+        threshold = 0.005
+        
+        conditions = [
+            df["target_fwd_return"] > threshold,
+            df["target_fwd_return"] < -threshold
+        ]
+        choices = [1.0, 0.0]  # Mapped safely to [1, 0] to satisfy XGBoost strict classifier class constraints
+        
+        # No-trade zone gets encoded as NaN to be strictly excluded during ML model fitting
+        direction = np.select(conditions, choices, default=np.nan)
+        direction_series = pd.Series(direction, index=df.index, dtype=float)
+        
+        # Preserve original NaNs at edge of dataset properly
+        df["target_direction"] = direction_series.where(df["target_fwd_return"].notna(), np.nan)
         return df
 
     def _add_calendar_features(self, df: pd.DataFrame) -> pd.DataFrame:
