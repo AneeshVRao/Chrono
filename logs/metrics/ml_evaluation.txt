@@ -1,0 +1,44 @@
+
+============================================================
+  OUT-OF-SAMPLE ML PERFORMANCE
+============================================================
+
+Model: LogisticRegression
+  Accuracy:  0.5177
+  Precision: 0.5387
+  Recall:    0.6272
+  F1 Score:  0.5796
+  ROC-AUC:   0.5156
+  Confusion Matrix:
+    [ 3209 | 4934 ] (True Neg | False Pos)
+    [ 3425 | 5762 ] (False Neg | True Pos)
+
+Model: RandomForest
+  Accuracy:  0.5184
+  Precision: 0.5343
+  Recall:    0.7127
+  F1 Score:  0.6108
+  ROC-AUC:   0.5054
+  Confusion Matrix:
+    [ 2436 | 5707 ] (True Neg | False Pos)
+    [ 2639 | 6548 ] (False Neg | True Pos)
+
+Model: XGBoost
+  Accuracy:  0.5160
+  Precision: 0.5336
+  Recall:    0.6908
+  F1 Score:  0.6021
+  ROC-AUC:   0.5027
+  Confusion Matrix:
+    [ 2596 | 5547 ] (True Neg | False Pos)
+    [ 2841 | 6346 ] (False Neg | True Pos)
+
+Model: Ensemble
+  Accuracy:  0.5206
+  Precision: 0.5374
+  Recall:    0.6866
+  F1 Score:  0.6029
+  ROC-AUC:   0.5114
+  Confusion Matrix:
+    [ 2714 | 5429 ] (True Neg | False Pos)
+    [ 2879 | 6308 ] (False Neg | True Pos)

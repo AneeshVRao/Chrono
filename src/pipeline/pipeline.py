@@ -19,7 +19,10 @@ from src.data.cleaner import DataCleaner
 from src.features.feature_builder import FeatureBuilder
 from src.models.linear_model import LogisticRegressionModel
 from src.models.tree_model import RandomForestModel
+from src.models.xgb_model import XGBoostModel
 from src.models.ensemble_model import EnsembleModel
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, confusion_matrix
 
 
 class DataPipeline:
@@ -66,6 +69,9 @@ class DataPipeline:
         # Step 4 & 5: Walk-Forward ML (Train & Predict)
         featured_data = self._walk_forward_ml(featured_data)
         
+        # Step 6: ML Out-of-Sample Evaluation
+        self._evaluate_ml(featured_data)
+        
         # Save final featured data with predictions
         self.builder.save_features(featured_data)
 
@@ -104,10 +110,12 @@ class DataPipeline:
         self.logger.info(">> STEP 4 & 5: Walk-forward ML training and predictions...")
         
         # Initialize prediction columns
-        model_names = ["LogisticRegression", "RandomForest", "Ensemble"]
+        model_names = ["LogisticRegression", "RandomForest", "XGBoost", "Ensemble"]
         for ticker, df in featured_data.items():
             for name in model_names:
                 df[f"pred_{name}"] = 0  # flat by default
+                # Also store prediction probabilities for evaluation
+                df[f"proba_{name}"] = 0.5
         
         # Combine all ticker data for time-based splitting
         combined = pd.concat(featured_data.values(), axis=0).sort_index()
@@ -142,7 +150,9 @@ class DataPipeline:
             # Extract train data
             train_df = combined[(combined.index >= t_train_start) & (combined.index <= t_train_end)]
             feature_cols = self.builder.get_feature_columns(train_df)
-            X_train = train_df[feature_cols].fillna(0)
+            
+            # Robust filling logic: forward fill absolute values, then 0 for leftover NaNs
+            X_train_raw = train_df[feature_cols].ffill().fillna(0)
             y_train = train_df["target_direction"].values
             
             if len(np.unique(y_train)) < 2:
@@ -151,36 +161,114 @@ class DataPipeline:
                 fold += 1
                 continue
                 
+            # CRITICAL FIX: Standard Scaling
+            scaler = StandardScaler()
+            X_train = scaler.fit_transform(X_train_raw)
+                
             # Base Models
             lr_model = LogisticRegressionModel({"model_kwargs": {"max_iter": 2000, "random_state": 42}})
             rf_model = RandomForestModel({"model_kwargs": {"n_estimators": 50, "max_depth": 5, "random_state": 42}})
+            xgb_model = XGBoostModel({"model_kwargs": {"n_estimators": 50, "max_depth": 3, "learning_rate": 0.05, "eval_metric": "logloss", "random_state": 42}})
             
-            # Ensemble wrapper
-            ensemble_model = EnsembleModel(models=[lr_model, rf_model], voting="soft")
+            # Ensemble wrapper with soft voting averaging
+            ensemble_model = EnsembleModel(models=[lr_model, rf_model, xgb_model], voting="soft")
             
-            # Fit all models (ensemble handles its internal model fitting)
+            # Fit all models (ensemble delegates to internal models automatically)
             ensemble_model.fit(X_train, y_train)
             
-            # For logging and fallback tracking, we also wrap them dynamically. 
-            # Note: ensemble_model.fit() already fits lr_model and rf_model inplace because Python passes objects by reference
             models_to_eval = {
                 "LogisticRegression": lr_model,
                 "RandomForest": rf_model,
+                "XGBoost": xgb_model,
                 "Ensemble": ensemble_model
             }
             
-            # Generate predictions on the test window for each ticker
+            # Predict on the precisely aligned test window out-of-sample block
             for ticker, df in featured_data.items():
                 ticker_test_mask = (df.index >= t_test_start) & (df.index <= t_test_end)
                 if not ticker_test_mask.any():
                     continue
                     
-                X_test = df.loc[ticker_test_mask, feature_cols].fillna(0)
-                if not X_test.empty:
+                X_test_raw = df.loc[ticker_test_mask, feature_cols].ffill().fillna(0)
+                if not X_test_raw.empty:
+                    X_test = scaler.transform(X_test_raw)
+                    
                     for m_name, mdl in models_to_eval.items():
-                        df.loc[ticker_test_mask, f"pred_{m_name}"] = mdl.predict(X_test)
+                        preds = mdl.predict(X_test)
+                        probas = mdl.predict_proba(X_test)
+                        
+                        # Validate predictions safely
+                        invalid_mask = np.isnan(probas)
+                        if invalid_mask.any():
+                            probas[invalid_mask] = 0.5
+                            preds[invalid_mask] = 0
+                            
+                        df.loc[ticker_test_mask, f"pred_{m_name}"] = preds
+                        df.loc[ticker_test_mask, f"proba_{m_name}"] = probas
                 
             start_idx += test_window
             fold += 1
             
         return featured_data
+
+    def _evaluate_ml(self, featured_data: dict[str, pd.DataFrame]) -> None:
+        """Evaluate ML metrics across strictly Out-Of-Sample prediction zones."""
+        self.logger.info(">> STEP 6: Validating Out-of-Sample Machine Learning Metrics...")
+        
+        # We define out-of-sample strictly across predictions not equaling initialization (0.5 for proba)
+        combined = pd.concat(featured_data.values(), axis=0)
+        out_dir = self.cfg.project_root / "logs" / "metrics"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        
+        model_names = ["LogisticRegression", "RandomForest", "XGBoost", "Ensemble"]
+        
+        results_str = "\n" + "="*60 + "\n  OUT-OF-SAMPLE ML PERFORMANCE\n" + "="*60 + "\n"
+        
+        for name in model_names:
+            proba_col = f"proba_{name}"
+            pred_col = f"pred_{name}"
+            
+            if proba_col not in combined.columns:
+                continue
+                
+            # Filter solely for the records that received predictions inside their Walk-Forward fold
+            mask = combined[proba_col] != 0.5
+            eval_df = combined[mask].dropna(subset=["target_direction"])
+            
+            if eval_df.empty:
+                self.logger.warning(f"No valid out-of-sample records evaluated for {name}.")
+                continue
+                
+            y_true = eval_df["target_direction"].values
+            y_pred = eval_df[pred_col].values
+            y_prob = eval_df[proba_col].values
+            
+            acc = accuracy_score(y_true, y_pred)
+            prec = precision_score(y_true, y_pred, zero_division=0)
+            rec = recall_score(y_true, y_pred, zero_division=0)
+            f1 = f1_score(y_true, y_pred, zero_division=0)
+            
+            try:
+                auc = roc_auc_score(y_true, y_prob)
+            except ValueError:
+                auc = 0.5 # Fail smoothly if only 1 class in truth mask
+                
+            cm = confusion_matrix(y_true, y_pred)
+            
+            metrics_msg = (
+                f"\nModel: {name}\n"
+                f"  Accuracy:  {acc:.4f}\n"
+                f"  Precision: {prec:.4f}\n"
+                f"  Recall:    {rec:.4f}\n"
+                f"  F1 Score:  {f1:.4f}\n"
+                f"  ROC-AUC:   {auc:.4f}\n"
+                f"  Confusion Matrix:\n"
+                f"    [ {cm[0][0]:>4d} | {cm[0][1]:>4d} ] (True Neg | False Pos)\n"
+                f"    [ {cm[1][0]:>4d} | {cm[1][1]:>4d} ] (False Neg | True Pos)\n"
+            )
+            self.logger.info(metrics_msg.replace("\n", " | "))
+            results_str += metrics_msg
+            
+        with open(out_dir / "ml_evaluation.txt", "w") as f:
+            f.write(results_str)
+        self.logger.info("Evaluation metrics saved to 'logs/metrics/'")
