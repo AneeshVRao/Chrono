@@ -4,41 +4,51 @@
 ============================================================
 
 Model: LogisticRegression
-  Accuracy:  0.5132
-  Precision: 0.5449
-  Recall:    0.5817
-  F1 Score:  0.5627
-  ROC-AUC:   0.5111
+  Accuracy:  0.5079
+  Precision: 0.5404
+  Recall:    0.5750
+  F1 Score:  0.5572
+  ROC-AUC:   0.5085
   Confusion Matrix:
-    [ 2500 | 3269 ] (True Neg | False Pos)
-    [ 2815 | 3914 ] (False Neg | True Pos)
+    [ 2479 | 3290 ] (True Neg | False Pos)
+    [ 2860 | 3869 ] (False Neg | True Pos)
 
 Model: RandomForest
-  Accuracy:  0.5173
-  Precision: 0.5424
-  Recall:    0.6619
-  F1 Score:  0.5962
-  ROC-AUC:   0.5091
+  Accuracy:  0.5194
+  Precision: 0.5439
+  Recall:    0.6655
+  F1 Score:  0.5986
+  ROC-AUC:   0.5066
   Confusion Matrix:
-    [ 2011 | 3758 ] (True Neg | False Pos)
-    [ 2275 | 4454 ] (False Neg | True Pos)
+    [ 2014 | 3755 ] (True Neg | False Pos)
+    [ 2251 | 4478 ] (False Neg | True Pos)
 
 Model: XGBoost
-  Accuracy:  0.5088
-  Precision: 0.5407
-  Recall:    0.5824
-  F1 Score:  0.5608
-  ROC-AUC:   0.5051
+  Accuracy:  0.5132
+  Precision: 0.5437
+  Recall:    0.5962
+  F1 Score:  0.5688
+  ROC-AUC:   0.5025
   Confusion Matrix:
-    [ 2440 | 3329 ] (True Neg | False Pos)
-    [ 2810 | 3919 ] (False Neg | True Pos)
+    [ 2402 | 3367 ] (True Neg | False Pos)
+    [ 2717 | 4012 ] (False Neg | True Pos)
+
+Model: LightGBM
+  Accuracy:  0.5152
+  Precision: 0.5449
+  Recall:    0.6045
+  F1 Score:  0.5732
+  ROC-AUC:   0.5103
+  Confusion Matrix:
+    [ 2371 | 3398 ] (True Neg | False Pos)
+    [ 2661 | 4068 ] (False Neg | True Pos)
 
 Model: Ensemble
-  Accuracy:  0.5217
-  Precision: 0.5497
-  Recall:    0.6176
-  F1 Score:  0.5817
-  ROC-AUC:   0.5107
+  Accuracy:  0.5197
+  Precision: 0.5475
+  Recall:    0.6216
+  F1 Score:  0.5822
+  ROC-AUC:   0.5098
   Confusion Matrix:
-    [ 2364 | 3405 ] (True Neg | False Pos)
-    [ 2573 | 4156 ] (False Neg | True Pos)
+    [ 2312 | 3457 ] (True Neg | False Pos)
+    [ 2546 | 4183 ] (False Neg | True Pos)

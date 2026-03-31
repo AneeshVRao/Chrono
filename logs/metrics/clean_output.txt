@@ -1,0 +1,357 @@
+﻿[2026-03-31 10:50:49] INFO     pipeline.backtest              | ======================================================================
+[2026-03-31 10:50:49] INFO     pipeline.backtest              |   PORTFOLIO RUNNER -- Multi-Asset Execution
+[2026-03-31 10:50:49] INFO     pipeline.backtest              | ======================================================================
+[2026-03-31 10:50:50] INFO     pipeline.backtest              | >> Executing Momentum Portfolio...
+[2026-03-31 10:50:50] INFO     src.core.strategies.momentum   | Momentum signals: 1203 long, 641 short, 141 flat (lookback=21d)
+[2026-03-31 10:50:50] INFO     src.core.strategies.momentum   | Momentum signals: 1195 long, 616 short, 174 flat (lookback=21d)
+[2026-03-31 10:50:50] INFO     src.core.strategies.momentum   | Momentum signals: 1183 long, 623 short, 179 flat (lookback=21d)
+[2026-03-31 10:50:50] INFO     src.core.strategies.momentum   | Momentum signals: 1155 long, 683 short, 147 flat (lookback=21d)
+[2026-03-31 10:50:50] INFO     src.core.strategies.momentum   | Momentum signals: 1130 long, 709 short, 146 flat (lookback=21d)
+[2026-03-31 10:50:51] INFO     src.core.strategies.momentum   | Momentum signals: 1212 long, 628 short, 145 flat (lookback=21d)
+[2026-03-31 10:50:51] INFO     src.core.strategies.momentum   | Momentum signals: 1134 long, 653 short, 198 flat (lookback=21d)
+[2026-03-31 10:50:51] INFO     src.core.strategies.momentum   | Momentum signals: 1055 long, 728 short, 202 flat (lookback=21d)
+[2026-03-31 10:50:51] INFO     src.core.strategies.momentum   | Momentum signals: 1021 long, 789 short, 175 flat (lookback=21d)
+[2026-03-31 10:50:51] INFO     src.core.strategies.momentum   | Momentum signals: 977 long, 788 short, 220 flat (lookback=21d)
+[2026-03-31 10:50:51] INFO     src.core.backtesting.engine    | Running backtest: Momentum on AAPL (1985 bars)
+[2026-03-31 10:50:51] INFO     src.core.backtesting.engine    |   Completed: 1805 trade entries, Sharpe=-2.315, Return=5.23%
+[2026-03-31 10:50:51] INFO     src.core.backtesting.engine    | Running backtest: Momentum on MSFT (1985 bars)
+[2026-03-31 10:50:51] INFO     src.core.backtesting.engine    |   Completed: 1778 trade entries, Sharpe=-3.351, Return=-1.40%
+[2026-03-31 10:50:51] INFO     src.core.backtesting.engine    | Running backtest: Momentum on GOOGL (1985 bars)
+[2026-03-31 10:50:51] INFO     src.core.backtesting.engine    |   Completed: 1763 trade entries, Sharpe=-3.277, Return=-1.70%
+[2026-03-31 10:50:51] INFO     src.core.backtesting.engine    | Running backtest: Momentum on AMZN (1985 bars)
+[2026-03-31 10:50:52] INFO     src.core.backtesting.engine    |   Completed: 1799 trade entries, Sharpe=-3.472, Return=1.70%
+[2026-03-31 10:50:52] INFO     src.core.backtesting.engine    | Running backtest: Momentum on META (1985 bars)
+[2026-03-31 10:50:52] INFO     src.core.backtesting.engine    |   Completed: 1794 trade entries, Sharpe=-2.688, Return=2.25%
+[2026-03-31 10:50:52] INFO     src.core.backtesting.engine    | Running backtest: Momentum on NVDA (1985 bars)
+[2026-03-31 10:50:52] INFO     src.core.backtesting.engine    |   Completed: 1805 trade entries, Sharpe=-4.251, Return=0.65%
+[2026-03-31 10:50:52] INFO     src.core.backtesting.engine    | Running backtest: Momentum on JPM (1985 bars)
+[2026-03-31 10:50:52] INFO     src.core.backtesting.engine    |   Completed: 1744 trade entries, Sharpe=-4.266, Return=-2.77%
+[2026-03-31 10:50:52] INFO     src.core.backtesting.engine    | Running backtest: Momentum on GS (1985 bars)
+[2026-03-31 10:50:52] INFO     src.core.backtesting.engine    |   Completed: 1759 trade entries, Sharpe=-3.078, Return=-0.51%
+[2026-03-31 10:50:52] INFO     src.core.backtesting.engine    | Running backtest: Momentum on XOM (1985 bars)
+[2026-03-31 10:50:52] INFO     src.core.backtesting.engine    |   Completed: 1767 trade entries, Sharpe=-2.865, Return=-0.27%
+[2026-03-31 10:50:52] INFO     src.core.backtesting.engine    | Running backtest: Momentum on JNJ (1985 bars)
+[2026-03-31 10:50:52] INFO     src.core.backtesting.engine    |   Completed: 1720 trade entries, Sharpe=-3.060, Return=-6.15%
+[2026-03-31 10:50:52] INFO     pipeline.backtest              |    [Momentum PORTFOLIO] Return: -4.16% | Sharpe: -0.697 | MaxDD: -17.63%
+[2026-03-31 10:50:52] INFO     pipeline.backtest              | >> Executing Mean Reversion Portfolio...
+[2026-03-31 10:50:52] INFO     src.core.strategies.mean_reversion | Mean Reversion signals: 227 long, 658 short, 1100 flat (RSI bounds=30/70)
+[2026-03-31 10:50:52] INFO     src.core.strategies.mean_reversion | Mean Reversion signals: 94 long, 625 short, 1266 flat (RSI bounds=30/70)
+[2026-03-31 10:50:53] INFO     src.core.strategies.mean_reversion | Mean Reversion signals: 207 long, 559 short, 1219 flat (RSI bounds=30/70)
+[2026-03-31 10:50:53] INFO     src.core.strategies.mean_reversion | Mean Reversion signals: 164 long, 512 short, 1309 flat (RSI bounds=30/70)
+[2026-03-31 10:50:53] INFO     src.core.strategies.mean_reversion | Mean Reversion signals: 284 long, 521 short, 1180 flat (RSI bounds=30/70)
+[2026-03-31 10:50:53] INFO     src.core.strategies.mean_reversion | Mean Reversion signals: 151 long, 630 short, 1204 flat (RSI bounds=30/70)
+[2026-03-31 10:50:53] INFO     src.core.strategies.mean_reversion | Mean Reversion signals: 189 long, 623 short, 1173 flat (RSI bounds=30/70)
+[2026-03-31 10:50:53] INFO     src.core.strategies.mean_reversion | Mean Reversion signals: 236 long, 565 short, 1184 flat (RSI bounds=30/70)
+[2026-03-31 10:50:53] INFO     src.core.strategies.mean_reversion | Mean Reversion signals: 264 long, 349 short, 1372 flat (RSI bounds=30/70)
+[2026-03-31 10:50:53] INFO     src.core.strategies.mean_reversion | Mean Reversion signals: 356 long, 540 short, 1089 flat (RSI bounds=30/70)
+[2026-03-31 10:50:53] INFO     src.core.backtesting.engine    | Running backtest: Mean Reversion on AAPL (1985 bars)
+[2026-03-31 10:50:54] INFO     src.core.backtesting.engine    |   Completed: 862 trade entries, Sharpe=-5.943, Return=-3.12%
+[2026-03-31 10:50:54] INFO     src.core.backtesting.engine    | Running backtest: Mean Reversion on MSFT (1985 bars)
+[2026-03-31 10:50:54] INFO     src.core.backtesting.engine    |   Completed: 706 trade entries, Sharpe=-5.602, Return=-2.22%
+[2026-03-31 10:50:54] INFO     src.core.backtesting.engine    | Running backtest: Mean Reversion on GOOGL (1985 bars)
+[2026-03-31 10:50:54] INFO     src.core.backtesting.engine    |   Completed: 748 trade entries, Sharpe=-4.521, Return=-2.45%
+[2026-03-31 10:50:54] INFO     src.core.backtesting.engine    | Running backtest: Mean Reversion on AMZN (1985 bars)
+[2026-03-31 10:50:54] INFO     src.core.backtesting.engine    |   Completed: 655 trade entries, Sharpe=-4.493, Return=-0.56%
+[2026-03-31 10:50:54] INFO     src.core.backtesting.engine    | Running backtest: Mean Reversion on META (1985 bars)
+[2026-03-31 10:50:54] INFO     src.core.backtesting.engine    |   Completed: 788 trade entries, Sharpe=-4.577, Return=-0.21%
+[2026-03-31 10:50:54] INFO     src.core.backtesting.engine    | Running backtest: Mean Reversion on NVDA (1985 bars)
+[2026-03-31 10:50:54] INFO     src.core.backtesting.engine    |   Completed: 760 trade entries, Sharpe=-9.528, Return=-2.34%
+[2026-03-31 10:50:54] INFO     src.core.backtesting.engine    | Running backtest: Mean Reversion on JPM (1985 bars)
+[2026-03-31 10:50:54] INFO     src.core.backtesting.engine    |   Completed: 785 trade entries, Sharpe=-3.836, Return=-0.48%
+[2026-03-31 10:50:54] INFO     src.core.backtesting.engine    | Running backtest: Mean Reversion on GS (1985 bars)
+[2026-03-31 10:50:54] INFO     src.core.backtesting.engine    |   Completed: 772 trade entries, Sharpe=-4.289, Return=-2.05%
+[2026-03-31 10:50:54] INFO     src.core.backtesting.engine    | Running backtest: Mean Reversion on XOM (1985 bars)
+[2026-03-31 10:50:54] INFO     src.core.backtesting.engine    |   Completed: 599 trade entries, Sharpe=-4.127, Return=1.28%
+[2026-03-31 10:50:54] INFO     src.core.backtesting.engine    | Running backtest: Mean Reversion on JNJ (1985 bars)
+[2026-03-31 10:50:54] INFO     src.core.backtesting.engine    |   Completed: 886 trade entries, Sharpe=-1.934, Return=3.81%
+[2026-03-31 10:50:54] INFO     pipeline.backtest              |    [Mean Reversion PORTFOLIO] Return: -8.59% | Sharpe: -1.111 | MaxDD: -16.47%
+[2026-03-31 10:50:54] INFO     pipeline.backtest              | >> Executing ML_Strategy(LogisticRegression) Portfolio...
+[2026-03-31 10:50:54] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(LogisticRegression) on AAPL (1985 bars)
+[2026-03-31 10:50:55] INFO     src.core.backtesting.engine    |   Completed: 398 trade entries, Sharpe=-24.165, Return=0.37%
+[2026-03-31 10:50:55] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(LogisticRegression) on MSFT (1985 bars)
+[2026-03-31 10:50:55] INFO     src.core.backtesting.engine    |   Completed: 434 trade entries, Sharpe=-26.079, Return=0.87%
+[2026-03-31 10:50:55] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(LogisticRegression) on GOOGL (1985 bars)
+[2026-03-31 10:50:55] INFO     src.core.backtesting.engine    |   Completed: 482 trade entries, Sharpe=-32.811, Return=-0.09%
+[2026-03-31 10:50:55] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(LogisticRegression) on AMZN (1985 bars)
+[2026-03-31 10:50:55] INFO     src.core.backtesting.engine    |   Completed: 388 trade entries, Sharpe=-38.711, Return=-0.14%
+[2026-03-31 10:50:55] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(LogisticRegression) on META (1985 bars)
+[2026-03-31 10:50:55] INFO     src.core.backtesting.engine    |   Completed: 459 trade entries, Sharpe=-45.699, Return=0.45%
+[2026-03-31 10:50:55] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(LogisticRegression) on NVDA (1985 bars)
+[2026-03-31 10:50:55] INFO     src.core.backtesting.engine    |   Completed: 415 trade entries, Sharpe=-60.296, Return=0.37%
+[2026-03-31 10:50:55] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(LogisticRegression) on JPM (1985 bars)
+[2026-03-31 10:50:55] INFO     src.core.backtesting.engine    |   Completed: 376 trade entries, Sharpe=-31.641, Return=-0.05%
+[2026-03-31 10:50:55] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(LogisticRegression) on GS (1985 bars)
+[2026-03-31 10:50:55] INFO     src.core.backtesting.engine    |   Completed: 316 trade entries, Sharpe=-44.534, Return=0.11%
+[2026-03-31 10:50:55] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(LogisticRegression) on XOM (1985 bars)
+[2026-03-31 10:50:55] INFO     src.core.backtesting.engine    |   Completed: 369 trade entries, Sharpe=-34.172, Return=-0.24%
+[2026-03-31 10:50:55] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(LogisticRegression) on JNJ (1985 bars)
+[2026-03-31 10:50:55] INFO     src.core.backtesting.engine    |   Completed: 330 trade entries, Sharpe=-17.065, Return=-0.91%
+[2026-03-31 10:50:55] INFO     pipeline.backtest              |    [ML_Strategy(LogisticRegression) PORTFOLIO] Return: 0.74% | Sharpe: -6.817 | MaxDD: -1.29%
+[2026-03-31 10:50:55] INFO     pipeline.backtest              | >> Executing ML_Strategy(RandomForest) Portfolio...
+[2026-03-31 10:50:56] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(RandomForest) on AAPL (1985 bars)
+[2026-03-31 10:50:56] INFO     src.core.backtesting.engine    |   Completed: 375 trade entries, Sharpe=-44.340, Return=0.11%
+[2026-03-31 10:50:56] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(RandomForest) on MSFT (1985 bars)
+[2026-03-31 10:50:56] INFO     src.core.backtesting.engine    |   Completed: 348 trade entries, Sharpe=-45.418, Return=0.27%
+[2026-03-31 10:50:56] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(RandomForest) on GOOGL (1985 bars)
+[2026-03-31 10:50:56] INFO     src.core.backtesting.engine    |   Completed: 412 trade entries, Sharpe=-51.727, Return=0.11%
+[2026-03-31 10:50:56] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(RandomForest) on AMZN (1985 bars)
+[2026-03-31 10:50:56] INFO     src.core.backtesting.engine    |   Completed: 394 trade entries, Sharpe=-55.293, Return=-0.23%
+[2026-03-31 10:50:56] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(RandomForest) on META (1985 bars)
+[2026-03-31 10:50:56] INFO     src.core.backtesting.engine    |   Completed: 293 trade entries, Sharpe=-108.009, Return=0.01%
+[2026-03-31 10:50:56] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(RandomForest) on NVDA (1985 bars)
+[2026-03-31 10:50:56] INFO     src.core.backtesting.engine    |   Completed: 412 trade entries, Sharpe=-123.041, Return=0.16%
+[2026-03-31 10:50:56] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(RandomForest) on JPM (1985 bars)
+[2026-03-31 10:50:56] INFO     src.core.backtesting.engine    |   Completed: 350 trade entries, Sharpe=-44.652, Return=-0.27%
+[2026-03-31 10:50:56] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(RandomForest) on GS (1985 bars)
+[2026-03-31 10:50:56] INFO     src.core.backtesting.engine    |   Completed: 244 trade entries, Sharpe=-77.761, Return=-0.04%
+[2026-03-31 10:50:56] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(RandomForest) on XOM (1985 bars)
+[2026-03-31 10:50:57] INFO     src.core.backtesting.engine    |   Completed: 351 trade entries, Sharpe=-60.426, Return=-0.57%
+[2026-03-31 10:50:57] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(RandomForest) on JNJ (1985 bars)
+[2026-03-31 10:50:57] INFO     src.core.backtesting.engine    |   Completed: 269 trade entries, Sharpe=-26.932, Return=-0.50%
+[2026-03-31 10:50:57] INFO     pipeline.backtest              |    [ML_Strategy(RandomForest) PORTFOLIO] Return: -0.95% | Sharpe: -11.837 | MaxDD: -1.56%
+[2026-03-31 10:50:57] INFO     pipeline.backtest              | >> Executing ML_Strategy(XGBoost) Portfolio...
+[2026-03-31 10:50:57] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(XGBoost) on AAPL (1985 bars)
+[2026-03-31 10:50:57] INFO     src.core.backtesting.engine    |   Completed: 404 trade entries, Sharpe=-23.018, Return=-0.19%
+[2026-03-31 10:50:57] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(XGBoost) on MSFT (1985 bars)
+[2026-03-31 10:50:57] INFO     src.core.backtesting.engine    |   Completed: 413 trade entries, Sharpe=-26.363, Return=0.16%
+[2026-03-31 10:50:57] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(XGBoost) on GOOGL (1985 bars)
+[2026-03-31 10:50:57] INFO     src.core.backtesting.engine    |   Completed: 414 trade entries, Sharpe=-31.949, Return=-0.39%
+[2026-03-31 10:50:57] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(XGBoost) on AMZN (1985 bars)
+[2026-03-31 10:50:57] INFO     src.core.backtesting.engine    |   Completed: 395 trade entries, Sharpe=-37.525, Return=-0.29%
+[2026-03-31 10:50:57] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(XGBoost) on META (1985 bars)
+[2026-03-31 10:50:58] INFO     src.core.backtesting.engine    |   Completed: 351 trade entries, Sharpe=-59.552, Return=-0.02%
+[2026-03-31 10:50:58] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(XGBoost) on NVDA (1985 bars)
+[2026-03-31 10:50:58] INFO     src.core.backtesting.engine    |   Completed: 408 trade entries, Sharpe=-90.400, Return=0.21%
+[2026-03-31 10:50:58] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(XGBoost) on JPM (1985 bars)
+[2026-03-31 10:50:58] INFO     src.core.backtesting.engine    |   Completed: 424 trade entries, Sharpe=-25.764, Return=-0.37%
+[2026-03-31 10:50:58] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(XGBoost) on GS (1985 bars)
+[2026-03-31 10:50:58] INFO     src.core.backtesting.engine    |   Completed: 363 trade entries, Sharpe=-35.544, Return=-0.48%
+[2026-03-31 10:50:58] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(XGBoost) on XOM (1985 bars)
+[2026-03-31 10:50:58] INFO     src.core.backtesting.engine    |   Completed: 382 trade entries, Sharpe=-30.972, Return=-0.87%
+[2026-03-31 10:50:58] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(XGBoost) on JNJ (1985 bars)
+[2026-03-31 10:50:58] INFO     src.core.backtesting.engine    |   Completed: 372 trade entries, Sharpe=-14.859, Return=-1.82%
+[2026-03-31 10:50:58] INFO     pipeline.backtest              |    [ML_Strategy(XGBoost) PORTFOLIO] Return: -4.01% | Sharpe: -7.613 | MaxDD: -5.13%
+[2026-03-31 10:50:58] INFO     pipeline.backtest              | >> Executing ML_Strategy(Ensemble) Portfolio...
+[2026-03-31 10:50:59] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on AAPL (1985 bars)
+[2026-03-31 10:50:59] INFO     src.core.backtesting.engine    |   Completed: 389 trade entries, Sharpe=-29.947, Return=-0.06%
+[2026-03-31 10:50:59] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on MSFT (1985 bars)
+[2026-03-31 10:50:59] INFO     src.core.backtesting.engine    |   Completed: 396 trade entries, Sharpe=-32.527, Return=0.38%
+[2026-03-31 10:50:59] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on GOOGL (1985 bars)
+[2026-03-31 10:50:59] INFO     src.core.backtesting.engine    |   Completed: 428 trade entries, Sharpe=-38.227, Return=-0.18%
+[2026-03-31 10:50:59] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on AMZN (1985 bars)
+[2026-03-31 10:50:59] INFO     src.core.backtesting.engine    |   Completed: 405 trade entries, Sharpe=-44.725, Return=-0.23%
+[2026-03-31 10:50:59] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on META (1985 bars)
+[2026-03-31 10:50:59] INFO     src.core.backtesting.engine    |   Completed: 367 trade entries, Sharpe=-70.626, Return=0.13%
+[2026-03-31 10:50:59] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on NVDA (1985 bars)
+[2026-03-31 10:50:59] INFO     src.core.backtesting.engine    |   Completed: 401 trade entries, Sharpe=-96.419, Return=0.27%
+[2026-03-31 10:50:59] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on JPM (1985 bars)
+[2026-03-31 10:51:00] INFO     src.core.backtesting.engine    |   Completed: 382 trade entries, Sharpe=-33.593, Return=-0.26%
+[2026-03-31 10:51:00] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on GS (1985 bars)
+[2026-03-31 10:51:00] INFO     src.core.backtesting.engine    |   Completed: 285 trade entries, Sharpe=-51.349, Return=-0.16%
+[2026-03-31 10:51:00] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on XOM (1985 bars)
+[2026-03-31 10:51:00] INFO     src.core.backtesting.engine    |   Completed: 358 trade entries, Sharpe=-42.284, Return=-0.58%
+[2026-03-31 10:51:00] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on JNJ (1985 bars)
+[2026-03-31 10:51:00] INFO     src.core.backtesting.engine    |   Completed: 330 trade entries, Sharpe=-20.193, Return=-1.12%
+[2026-03-31 10:51:00] INFO     pipeline.backtest              |    [ML_Strategy(Ensemble) PORTFOLIO] Return: -1.81% | Sharpe: -8.945 | MaxDD: -2.51%
+[2026-03-31 10:51:00] INFO     pipeline.backtest              | >> Compiling Global Benchmark (Buy & Hold)...
+[2026-03-31 10:51:00] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on AAPL (1985 bars)
+[2026-03-31 10:51:00] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.318, Return=25.93%
+[2026-03-31 10:51:00] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on MSFT (1985 bars)
+[2026-03-31 10:51:00] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.359, Return=24.84%
+[2026-03-31 10:51:00] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on GOOGL (1985 bars)
+[2026-03-31 10:51:00] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.438, Return=22.40%
+[2026-03-31 10:51:00] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on AMZN (1985 bars)
+[2026-03-31 10:51:00] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.621, Return=17.29%
+[2026-03-31 10:51:00] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on META (1985 bars)
+[2026-03-31 10:51:00] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.622, Return=15.96%
+[2026-03-31 10:51:00] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on NVDA (1985 bars)
+[2026-03-31 10:51:00] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.087, Return=32.93%
+[2026-03-31 10:51:00] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on JPM (1985 bars)
+[2026-03-31 10:51:01] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.629, Return=16.46%
+[2026-03-31 10:51:01] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on GS (1985 bars)
+[2026-03-31 10:51:01] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.609, Return=17.26%
+[2026-03-31 10:51:01] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on XOM (1985 bars)
+[2026-03-31 10:51:01] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.858, Return=10.41%
+[2026-03-31 10:51:01] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on JNJ (1985 bars)
+[2026-03-31 10:51:01] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.874, Return=9.76%
+[2026-03-31 10:51:01] INFO     pipeline.backtest              |    [BENCHMARK PORTFOLIO] Return: 398.79% | Sharpe: 0.880 | MaxDD: -31.73%
+[2026-03-31 10:51:01] INFO     pipeline.backtest              | Backtest complete in 12.0s -- 10 tickers, Portfolio Engine Integrated
+
+============================================================
+  PHASE 5: COST SENSITIVITY ANALYSIS (Ensemble Portfolio)
+============================================================
+[2026-03-31 10:51:01] INFO     pipeline.backtest              | ======================================================================
+[2026-03-31 10:51:01] INFO     pipeline.backtest              |   PORTFOLIO RUNNER -- Multi-Asset Execution
+[2026-03-31 10:51:01] INFO     pipeline.backtest              | ======================================================================
+[2026-03-31 10:51:01] INFO     pipeline.backtest              | >> Executing ML_Strategy(Ensemble) Portfolio...
+[2026-03-31 10:51:01] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on AAPL (1985 bars)
+[2026-03-31 10:51:01] INFO     src.core.backtesting.engine    |   Completed: 389 trade entries, Sharpe=-29.947, Return=-0.06%
+[2026-03-31 10:51:01] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on MSFT (1985 bars)
+[2026-03-31 10:51:01] INFO     src.core.backtesting.engine    |   Completed: 396 trade entries, Sharpe=-32.527, Return=0.38%
+[2026-03-31 10:51:01] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on GOOGL (1985 bars)
+[2026-03-31 10:51:02] INFO     src.core.backtesting.engine    |   Completed: 428 trade entries, Sharpe=-38.227, Return=-0.18%
+[2026-03-31 10:51:02] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on AMZN (1985 bars)
+[2026-03-31 10:51:02] INFO     src.core.backtesting.engine    |   Completed: 405 trade entries, Sharpe=-44.725, Return=-0.23%
+[2026-03-31 10:51:02] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on META (1985 bars)
+[2026-03-31 10:51:02] INFO     src.core.backtesting.engine    |   Completed: 367 trade entries, Sharpe=-70.626, Return=0.13%
+[2026-03-31 10:51:02] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on NVDA (1985 bars)
+[2026-03-31 10:51:02] INFO     src.core.backtesting.engine    |   Completed: 401 trade entries, Sharpe=-96.419, Return=0.27%
+[2026-03-31 10:51:02] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on JPM (1985 bars)
+[2026-03-31 10:51:02] INFO     src.core.backtesting.engine    |   Completed: 382 trade entries, Sharpe=-33.593, Return=-0.26%
+[2026-03-31 10:51:02] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on GS (1985 bars)
+[2026-03-31 10:51:02] INFO     src.core.backtesting.engine    |   Completed: 285 trade entries, Sharpe=-51.349, Return=-0.16%
+[2026-03-31 10:51:02] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on XOM (1985 bars)
+[2026-03-31 10:51:02] INFO     src.core.backtesting.engine    |   Completed: 358 trade entries, Sharpe=-42.284, Return=-0.58%
+[2026-03-31 10:51:02] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on JNJ (1985 bars)
+[2026-03-31 10:51:02] INFO     src.core.backtesting.engine    |   Completed: 330 trade entries, Sharpe=-20.193, Return=-1.12%
+[2026-03-31 10:51:02] INFO     pipeline.backtest              |    [ML_Strategy(Ensemble) PORTFOLIO] Return: -1.81% | Sharpe: -8.945 | MaxDD: -2.51%
+[2026-03-31 10:51:02] INFO     pipeline.backtest              | >> Compiling Global Benchmark (Buy & Hold)...
+[2026-03-31 10:51:02] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on AAPL (1985 bars)
+[2026-03-31 10:51:02] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.318, Return=25.93%
+[2026-03-31 10:51:02] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on MSFT (1985 bars)
+[2026-03-31 10:51:02] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.359, Return=24.84%
+[2026-03-31 10:51:02] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on GOOGL (1985 bars)
+[2026-03-31 10:51:02] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.438, Return=22.40%
+[2026-03-31 10:51:02] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on AMZN (1985 bars)
+[2026-03-31 10:51:02] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.621, Return=17.29%
+[2026-03-31 10:51:02] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on META (1985 bars)
+[2026-03-31 10:51:03] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.622, Return=15.96%
+[2026-03-31 10:51:03] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on NVDA (1985 bars)
+[2026-03-31 10:51:03] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.087, Return=32.93%
+[2026-03-31 10:51:03] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on JPM (1985 bars)
+[2026-03-31 10:51:03] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.629, Return=16.46%
+[2026-03-31 10:51:03] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on GS (1985 bars)
+[2026-03-31 10:51:03] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.609, Return=17.26%
+[2026-03-31 10:51:03] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on XOM (1985 bars)
+[2026-03-31 10:51:03] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.858, Return=10.41%
+[2026-03-31 10:51:03] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on JNJ (1985 bars)
+[2026-03-31 10:51:03] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.874, Return=9.76%
+[2026-03-31 10:51:03] INFO     pipeline.backtest              |    [BENCHMARK PORTFOLIO] Return: 398.79% | Sharpe: 0.880 | MaxDD: -31.73%
+[2026-03-31 10:51:03] INFO     pipeline.backtest              | Backtest complete in 2.2s -- 10 tickers, Portfolio Engine Integrated
+[2026-03-31 10:51:03] INFO     pipeline.backtest              | ======================================================================
+[2026-03-31 10:51:03] INFO     pipeline.backtest              |   PORTFOLIO RUNNER -- Multi-Asset Execution
+[2026-03-31 10:51:03] INFO     pipeline.backtest              | ======================================================================
+[2026-03-31 10:51:03] INFO     pipeline.backtest              | >> Executing ML_Strategy(Ensemble) Portfolio...
+[2026-03-31 10:51:03] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on AAPL (1985 bars)
+[2026-03-31 10:51:04] INFO     src.core.backtesting.engine    |   Completed: 389 trade entries, Sharpe=-30.297, Return=-1.41%
+[2026-03-31 10:51:04] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on MSFT (1985 bars)
+[2026-03-31 10:51:04] INFO     src.core.backtesting.engine    |   Completed: 396 trade entries, Sharpe=-33.241, Return=-1.46%
+[2026-03-31 10:51:04] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on GOOGL (1985 bars)
+[2026-03-31 10:51:04] INFO     src.core.backtesting.engine    |   Completed: 428 trade entries, Sharpe=-37.798, Return=-1.48%
+[2026-03-31 10:51:04] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on AMZN (1985 bars)
+[2026-03-31 10:51:04] INFO     src.core.backtesting.engine    |   Completed: 405 trade entries, Sharpe=-44.238, Return=-1.23%
+[2026-03-31 10:51:04] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on META (1985 bars)
+[2026-03-31 10:51:04] INFO     src.core.backtesting.engine    |   Completed: 367 trade entries, Sharpe=-70.840, Return=-0.51%
+[2026-03-31 10:51:04] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on NVDA (1985 bars)
+[2026-03-31 10:51:04] INFO     src.core.backtesting.engine    |   Completed: 401 trade entries, Sharpe=-96.778, Return=-0.03%
+[2026-03-31 10:51:04] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on JPM (1985 bars)
+[2026-03-31 10:51:04] INFO     src.core.backtesting.engine    |   Completed: 382 trade entries, Sharpe=-33.950, Return=-2.25%
+[2026-03-31 10:51:04] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on GS (1985 bars)
+[2026-03-31 10:51:05] INFO     src.core.backtesting.engine    |   Completed: 285 trade entries, Sharpe=-50.463, Return=-1.09%
+[2026-03-31 10:51:05] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on XOM (1985 bars)
+[2026-03-31 10:51:05] INFO     src.core.backtesting.engine    |   Completed: 358 trade entries, Sharpe=-41.330, Return=-2.03%
+[2026-03-31 10:51:05] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on JNJ (1985 bars)
+[2026-03-31 10:51:05] INFO     src.core.backtesting.engine    |   Completed: 330 trade entries, Sharpe=-20.836, Return=-5.23%
+[2026-03-31 10:51:05] INFO     pipeline.backtest              |    [ML_Strategy(Ensemble) PORTFOLIO] Return: -15.60% | Sharpe: -12.411 | MaxDD: -15.60%
+[2026-03-31 10:51:05] INFO     pipeline.backtest              | >> Compiling Global Benchmark (Buy & Hold)...
+[2026-03-31 10:51:05] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on AAPL (1985 bars)
+[2026-03-31 10:51:05] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.363, Return=24.60%
+[2026-03-31 10:51:05] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on MSFT (1985 bars)
+[2026-03-31 10:51:05] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.402, Return=23.61%
+[2026-03-31 10:51:05] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on GOOGL (1985 bars)
+[2026-03-31 10:51:06] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.477, Return=21.26%
+[2026-03-31 10:51:06] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on AMZN (1985 bars)
+[2026-03-31 10:51:06] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.659, Return=16.25%
+[2026-03-31 10:51:06] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on META (1985 bars)
+[2026-03-31 10:51:06] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.656, Return=14.97%
+[2026-03-31 10:51:06] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on NVDA (1985 bars)
+[2026-03-31 10:51:06] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.115, Return=32.05%
+[2026-03-31 10:51:06] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on JPM (1985 bars)
+[2026-03-31 10:51:06] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.679, Return=15.08%
+[2026-03-31 10:51:06] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on GS (1985 bars)
+[2026-03-31 10:51:06] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.651, Return=16.07%
+[2026-03-31 10:51:06] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on XOM (1985 bars)
+[2026-03-31 10:51:06] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.906, Return=9.13%
+[2026-03-31 10:51:06] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on JNJ (1985 bars)
+[2026-03-31 10:51:06] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.949, Return=7.78%
+[2026-03-31 10:51:06] INFO     pipeline.backtest              |    [BENCHMARK PORTFOLIO] Return: 348.54% | Sharpe: 0.816 | MaxDD: -31.89%
+[2026-03-31 10:51:06] INFO     pipeline.backtest              | Backtest complete in 3.5s -- 10 tickers, Portfolio Engine Integrated
+[2026-03-31 10:51:06] INFO     pipeline.backtest              | ======================================================================
+[2026-03-31 10:51:06] INFO     pipeline.backtest              |   PORTFOLIO RUNNER -- Multi-Asset Execution
+[2026-03-31 10:51:06] INFO     pipeline.backtest              | ======================================================================
+[2026-03-31 10:51:07] INFO     pipeline.backtest              | >> Executing ML_Strategy(Ensemble) Portfolio...
+[2026-03-31 10:51:07] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on AAPL (1985 bars)
+[2026-03-31 10:51:07] INFO     src.core.backtesting.engine    |   Completed: 389 trade entries, Sharpe=-29.280, Return=-3.08%
+[2026-03-31 10:51:07] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on MSFT (1985 bars)
+[2026-03-31 10:51:07] INFO     src.core.backtesting.engine    |   Completed: 396 trade entries, Sharpe=-31.394, Return=-3.71%
+[2026-03-31 10:51:07] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on GOOGL (1985 bars)
+[2026-03-31 10:51:07] INFO     src.core.backtesting.engine    |   Completed: 428 trade entries, Sharpe=-35.258, Return=-3.08%
+[2026-03-31 10:51:07] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on AMZN (1985 bars)
+[2026-03-31 10:51:07] INFO     src.core.backtesting.engine    |   Completed: 405 trade entries, Sharpe=-41.572, Return=-2.46%
+[2026-03-31 10:51:07] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on META (1985 bars)
+[2026-03-31 10:51:07] INFO     src.core.backtesting.engine    |   Completed: 367 trade entries, Sharpe=-67.561, Return=-1.30%
+[2026-03-31 10:51:07] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on NVDA (1985 bars)
+[2026-03-31 10:51:08] INFO     src.core.backtesting.engine    |   Completed: 401 trade entries, Sharpe=-94.500, Return=-0.41%
+[2026-03-31 10:51:08] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on JPM (1985 bars)
+[2026-03-31 10:51:08] INFO     src.core.backtesting.engine    |   Completed: 382 trade entries, Sharpe=-31.532, Return=-4.68%
+[2026-03-31 10:51:08] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on GS (1985 bars)
+[2026-03-31 10:51:08] INFO     src.core.backtesting.engine    |   Completed: 285 trade entries, Sharpe=-46.910, Return=-2.24%
+[2026-03-31 10:51:08] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on XOM (1985 bars)
+[2026-03-31 10:51:08] INFO     src.core.backtesting.engine    |   Completed: 358 trade entries, Sharpe=-36.952, Return=-3.82%
+[2026-03-31 10:51:08] INFO     src.core.backtesting.engine    | Running backtest: ML_Strategy(Ensemble) on JNJ (1985 bars)
+[2026-03-31 10:51:08] INFO     src.core.backtesting.engine    |   Completed: 330 trade entries, Sharpe=-19.168, Return=-10.12%
+[2026-03-31 10:51:08] INFO     pipeline.backtest              |    [ML_Strategy(Ensemble) PORTFOLIO] Return: -30.14% | Sharpe: -14.873 | MaxDD: -30.14%
+[2026-03-31 10:51:08] INFO     pipeline.backtest              | >> Compiling Global Benchmark (Buy & Hold)...
+[2026-03-31 10:51:08] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on AAPL (1985 bars)
+[2026-03-31 10:51:08] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.419, Return=22.95%
+[2026-03-31 10:51:08] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on MSFT (1985 bars)
+[2026-03-31 10:51:08] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.454, Return=22.10%
+[2026-03-31 10:51:08] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on GOOGL (1985 bars)
+[2026-03-31 10:51:08] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.526, Return=19.86%
+[2026-03-31 10:51:08] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on AMZN (1985 bars)
+[2026-03-31 10:51:08] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.706, Return=14.97%
+[2026-03-31 10:51:08] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on META (1985 bars)
+[2026-03-31 10:51:08] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.698, Return=13.74%
+[2026-03-31 10:51:08] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on NVDA (1985 bars)
+[2026-03-31 10:51:09] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.150, Return=30.95%
+[2026-03-31 10:51:09] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on JPM (1985 bars)
+[2026-03-31 10:51:09] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.740, Return=13.37%
+[2026-03-31 10:51:09] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on GS (1985 bars)
+[2026-03-31 10:51:09] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.703, Return=14.61%
+[2026-03-31 10:51:09] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on XOM (1985 bars)
+[2026-03-31 10:51:09] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-0.966, Return=7.56%
+[2026-03-31 10:51:09] INFO     src.core.backtesting.engine    | Running backtest: Buy & Hold on JNJ (1985 bars)
+[2026-03-31 10:51:09] INFO     src.core.backtesting.engine    |   Completed: 1966 trade entries, Sharpe=-1.042, Return=5.34%
+[2026-03-31 10:51:09] INFO     pipeline.backtest              |    [BENCHMARK PORTFOLIO] Return: 292.76% | Sharpe: 0.737 | MaxDD: -32.10%
+[2026-03-31 10:51:09] INFO     pipeline.backtest              | Backtest complete in 2.5s -- 10 tickers, Portfolio Engine Integrated
+                 CAGR   Sharpe   Max DD
+Cost Regime                            
+Low (0.1%)     -0.23%   -8.945   -2.51%
+Medium (0.5%)  -2.13%  -12.411  -15.60%
+High (1.0%)    -4.45%  -14.873  -30.14%
+
+
+================================================================================
+  PHASE 7: FINAL PORTFOLIO AUDIT REPORT
+================================================================================
+
+                                    Ticker                    Period Total Return    CAGR Volatility (Ann.) Sharpe Ratio Sortino Ratio Max Drawdown Max DD Duration Calmar Ratio Win Rate Profit Factor  Total Trades Avg Trade Return
+Strategy                                                                                                                                                                                                                              
+Momentum                         PORTFOLIO  2018-02-07 -> 2025-12-30       -4.16%  -0.54%             6.13%       -0.697        -0.941      -17.63%       1337 days       -0.031   50.30%         0.990          1984         -0.0014%
+Mean Reversion                   PORTFOLIO  2018-02-07 -> 2025-12-30       -8.59%  -1.13%             4.47%       -1.111        -1.568      -16.47%       1567 days       -0.069   46.85%         0.954          1891         -0.0043%
+ML_Strategy(LogisticRegression)  PORTFOLIO  2018-02-07 -> 2025-12-30        0.74%   0.09%             0.56%       -6.817        -9.169       -1.29%       1088 days        0.073   43.25%         1.047          1496          0.0005%
+ML_Strategy(RandomForest)        PORTFOLIO  2018-02-07 -> 2025-12-30       -0.95%  -0.12%             0.34%      -11.837       -15.192       -1.56%       1088 days       -0.078   42.95%         0.909          1439         -0.0007%
+ML_Strategy(XGBoost)             PORTFOLIO  2018-02-07 -> 2025-12-30       -4.01%  -0.52%             0.58%       -7.613        -9.427       -5.13%       1682 days       -0.101   41.10%         0.797          1533         -0.0027%
+ML_Strategy(Ensemble)            PORTFOLIO  2018-02-07 -> 2025-12-30       -1.81%  -0.23%             0.46%       -8.945       -11.441       -2.51%       1682 days       -0.092   42.53%         0.876          1500         -0.0012%
+Buy & Hold                       PORTFOLIO  2018-02-07 -> 2025-12-30      398.79%  22.63%            21.33%        0.880         1.112      -31.73%        353 days        0.713   56.00%         1.219          1984          0.0901%
+
+--------------------------------------------------------------------------------
+  PHASE 6: BENCHMARK COMPARISON (Ensemble vs Equal-Weight B&H)
+--------------------------------------------------------------------------------
+  Annualized Alpha:   +0.00%
+  Information Ratio:  +0.000
+
+================================================================================
+  Portfolio Pipeline Engine completed in 20.3s
+  Multi-Asset Executed on 10 tickers.
+================================================================================

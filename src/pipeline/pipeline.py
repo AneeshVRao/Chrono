@@ -20,8 +20,10 @@ from src.features.feature_builder import FeatureBuilder
 from src.models.linear_model import LogisticRegressionModel
 from src.models.tree_model import RandomForestModel
 from src.models.xgb_model import XGBoostModel
+from src.models.lgbm_model import LightGBMModel
 from src.models.ensemble_model import EnsembleModel
 from sklearn.preprocessing import StandardScaler
+from sklearn.calibration import CalibratedClassifierCV
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, confusion_matrix
 
 
@@ -69,11 +71,11 @@ class DataPipeline:
         # Step 4 & 5: Walk-Forward ML (Train & Predict)
         featured_data = self._walk_forward_ml(featured_data)
         
+        # Save final featured data with predictions FIRST (to avoid loss if eval fails)
+        self.builder.save_features(featured_data)
+        
         # Step 6: ML Out-of-Sample Evaluation
         self._evaluate_ml(featured_data)
-        
-        # Save final featured data with predictions
-        self.builder.save_features(featured_data)
 
         elapsed = time.time() - t0
         self.logger.info(f"Pipeline complete in {elapsed:.1f}s -- "
@@ -163,8 +165,9 @@ class DataPipeline:
                 lr = LogisticRegressionModel({"model_kwargs": {"max_iter": 2000, "random_state": 42}})
                 rf = RandomForestModel({"model_kwargs": {"n_estimators": 200, "max_depth": 7, "min_samples_leaf": 5, "random_state": 42}})
                 xgb = XGBoostModel({"model_kwargs": {"n_estimators": 100, "max_depth": 3, "learning_rate": 0.1, "eval_metric": "logloss", "random_state": 42}})
-                ens = EnsembleModel(models=[lr, rf, xgb], voting="soft")
-                return {"LogisticRegression": lr, "RandomForest": rf, "XGBoost": xgb, "Ensemble": ens}
+                lgbm = LightGBMModel({"model_kwargs": {"n_estimators": 100, "max_depth": 5, "learning_rate": 0.05, "num_leaves": 31, "random_state": 42}})
+                ens = EnsembleModel(models=[lr, rf, xgb, lgbm], voting="soft")
+                return {"LogisticRegression": lr, "RandomForest": rf, "XGBoost": xgb, "LightGBM": lgbm, "Ensemble": ens}
 
             models_bull = create_models()
             models_bear = create_models()
@@ -247,7 +250,7 @@ class DataPipeline:
         out_dir = self.cfg.project_root / "logs" / "metrics"
         out_dir.mkdir(parents=True, exist_ok=True)
         
-        model_names = ["LogisticRegression", "RandomForest", "XGBoost", "Ensemble"]
+        model_names = ["LogisticRegression", "RandomForest", "XGBoost", "LightGBM", "Ensemble"]
         
         results_str = "\n" + "="*60 + "\n  OUT-OF-SAMPLE ML PERFORMANCE\n" + "="*60 + "\n"
         
@@ -260,7 +263,7 @@ class DataPipeline:
                 
             # Filter solely for the records that received predictions inside their Walk-Forward fold
             mask = combined[proba_col] != 0.5
-            eval_df = combined[mask].dropna(subset=["target_direction"])
+            eval_df = combined[mask].dropna(subset=["target_direction", pred_col, proba_col])
             
             if eval_df.empty:
                 self.logger.warning(f"No valid out-of-sample records evaluated for {name}.")

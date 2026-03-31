@@ -117,8 +117,11 @@ class BacktestRunner:
             self.logger.error("No valid ticker data frames located.")
             return [], []
 
-        # Initialize engines
-        portfolio_manager = PortfolioManager(allocation_type="equal_weight")
+        # Pre-compute returns for all assets to feed Risk Parity volatility scaling
+        returns_dict = {t: df["close"].pct_change().fillna(0) for t, df in dfs.items()}
+        
+        # Initialize engines (Phase 5: Shift to Risk Parity)
+        portfolio_manager = PortfolioManager(allocation_type="risk_parity", returns_data=returns_dict)
         risk_manager = RiskManager(self.cfg.get("risk_management", {}))
 
         all_results: list[BacktestResult] = []
@@ -133,7 +136,7 @@ class BacktestRunner:
             # Step 1 & 2: Generate raw signals and apply per-asset Risk Rules
             for ticker, df in dfs.items():
                 raw = strategy.generate_signals(df)
-                returns = df["close"].pct_change().fillna(0)
+                returns = returns_dict[ticker]
                 risk_adj = risk_manager.apply_rules(df, raw, returns)
                 raw_signals[ticker] = raw
                 risk_adj_signals[ticker] = risk_adj

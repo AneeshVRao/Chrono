@@ -22,8 +22,8 @@ class ReturnsFeatures:
         vol = params.get("volatility", {})
         stats = params.get("rolling_stats", {})
 
-        self.log_return_periods: list[int] = ret.get("log_return_periods", [1, 5, 10, 20])
-        self.rolling_return_windows: list[int] = ret.get("rolling_return_windows", [5, 10, 20])
+        self.log_return_periods: list[int] = ret.get("log_return_periods", [1, 5, 10, 20, 60])
+        self.rolling_return_windows: list[int] = ret.get("rolling_return_windows", [5, 10, 20, 60])
         self.lagged_returns: list[int] = ret.get("lagged_returns", [1, 2, 3, 5])
         self.vol_windows: list[int] = vol.get("rolling_windows", [5, 10, 20])
         self.ewm_span: int = vol.get("ewm_span", 20)
@@ -108,6 +108,25 @@ class ReturnsFeatures:
 
         return df
 
+    def add_vol_adjusted_returns(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Volatility-adjusted returns = return / rolling_vol. Normalizes signal strength."""
+        if "log_ret_1d" not in df.columns:
+            df["log_ret_1d"] = np.log(df["close"] / df["close"].shift(1))
+        for w in [5, 10, 20]:
+            vol = df["log_ret_1d"].rolling(w, min_periods=w).std()
+            df[f"vol_adj_ret_{w}d"] = df["log_ret_1d"] / (vol + 1e-10)
+        return df
+
+    def add_rolling_zscore(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Rolling z-score of returns for normalization."""
+        if "log_ret_1d" not in df.columns:
+            df["log_ret_1d"] = np.log(df["close"] / df["close"].shift(1))
+        for w in [20, 60]:
+            mean = df["log_ret_1d"].rolling(w, min_periods=w).mean()
+            std = df["log_ret_1d"].rolling(w, min_periods=w).std()
+            df[f"ret_zscore_{w}d"] = (df["log_ret_1d"] - mean) / (std + 1e-10)
+        return df
+
     def add_all(self, df: pd.DataFrame) -> pd.DataFrame:
         """Apply all return and volatility features."""
         logger.info("Computing returns & volatility features...")
@@ -116,5 +135,7 @@ class ReturnsFeatures:
         df = self.add_realized_volatility(df)
         df = self.add_rolling_statistics(df)
         df = self.add_volume_features(df)
+        df = self.add_vol_adjusted_returns(df)
+        df = self.add_rolling_zscore(df)
         logger.info(f"Returns/vol features added: {len(df.columns)} total columns")
         return df

@@ -33,9 +33,29 @@ class MLStrategy(BaseStrategy):
 
         if self.proba_col in df.columns:
             probas = df[self.proba_col].values
-            # Continuous proportional sizing
-            base_signals = 2.0 * (probas - 0.5)
-            base_signals = np.clip(base_signals, -1.0, 1.0)
+            
+            # Phase 4: Confidence threshold — only trade when model is confident
+            confidence_threshold = self.params.get("confidence_threshold", 0.55)
+            kelly_fraction = self.params.get("kelly_fraction", 0.5)  # Half-Kelly for safety
+            
+            # Kelly criterion: f* = (p * b - q) / b where b=1 for symmetric payoff
+            # Simplified: f* = 2*p - 1 (edge), then scale by kelly_fraction
+            edge = 2.0 * probas - 1.0  # Range: [-1, 1]
+            position_size = kelly_fraction * edge
+            
+            # Zero out positions below confidence threshold (no-trade zone)
+            low_confidence = (probas < confidence_threshold) & (probas > (1 - confidence_threshold))
+            position_size[low_confidence] = 0.0
+            
+            # Volatility-adjusted sizing if vol data available
+            if "realized_vol_20d" in df.columns:
+                vol = df["realized_vol_20d"].values
+                vol_target = 0.15  # 15% annualized target
+                vol_scalar = vol_target / (vol + 1e-10)
+                vol_scalar = np.clip(vol_scalar, 0.2, 3.0)  # Cap leverage
+                position_size = position_size * vol_scalar
+            
+            base_signals = np.clip(position_size, -1.0, 1.0)
             if not self.allow_shorts:
                 base_signals = np.clip(base_signals, 0.0, 1.0)
         elif self.prediction_col in df.columns:
