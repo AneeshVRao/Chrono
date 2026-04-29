@@ -4,56 +4,56 @@
 ============================================================
 
 Model: LogisticRegression
-  Accuracy:  0.7368
+  Accuracy:  0.8333
+  Precision: 0.7143
+  Recall:    1.0000
+  F1 Score:  0.8333
+  ROC-AUC:   0.9786
+  Sharpe:    6.842
+  Confusion Matrix:
+    [   10 |    4 ] (True Neg | False Pos)
+    [    0 |   10 ] (False Neg | True Pos)
+
+Model: RandomForest
+  Accuracy:  0.7917
+  Precision: 0.6923
+  Recall:    0.9000
+  F1 Score:  0.7826
+  ROC-AUC:   0.9357
+  Sharpe:    5.513
+  Confusion Matrix:
+    [   10 |    4 ] (True Neg | False Pos)
+    [    1 |    9 ] (False Neg | True Pos)
+
+Model: XGBoost
+  Accuracy:  0.7917
   Precision: 0.7778
   Recall:    0.7000
   F1 Score:  0.7368
-  ROC-AUC:   0.8000
-  Sharpe:    2.888
+  ROC-AUC:   0.8321
+  Sharpe:    5.574
   Confusion Matrix:
-    [    7 |    2 ] (True Neg | False Pos)
+    [   12 |    2 ] (True Neg | False Pos)
     [    3 |    7 ] (False Neg | True Pos)
 
-Model: RandomForest
-  Accuracy:  0.7368
-  Precision: 0.7273
-  Recall:    0.8000
-  F1 Score:  0.7619
-  ROC-AUC:   0.7667
-  Sharpe:    6.967
-  Confusion Matrix:
-    [    6 |    3 ] (True Neg | False Pos)
-    [    2 |    8 ] (False Neg | True Pos)
-
-Model: XGBoost
-  Accuracy:  0.6842
-  Precision: 0.7500
-  Recall:    0.6000
-  F1 Score:  0.6667
-  ROC-AUC:   0.7111
-  Sharpe:    6.652
-  Confusion Matrix:
-    [    7 |    2 ] (True Neg | False Pos)
-    [    4 |    6 ] (False Neg | True Pos)
-
 Model: LightGBM
-  Accuracy:  0.7368
-  Precision: 0.7273
-  Recall:    0.8000
-  F1 Score:  0.7619
-  ROC-AUC:   0.7278
-  Sharpe:    6.967
+  Accuracy:  0.7917
+  Precision: 0.6923
+  Recall:    0.9000
+  F1 Score:  0.7826
+  ROC-AUC:   0.7786
+  Sharpe:    5.513
   Confusion Matrix:
-    [    6 |    3 ] (True Neg | False Pos)
-    [    2 |    8 ] (False Neg | True Pos)
+    [   10 |    4 ] (True Neg | False Pos)
+    [    1 |    9 ] (False Neg | True Pos)
 
 Model: Ensemble
-  Accuracy:  0.6842
+  Accuracy:  0.8333
   Precision: 0.7500
-  Recall:    0.6000
-  F1 Score:  0.6667
-  ROC-AUC:   0.8222
-  Sharpe:    6.652
+  Recall:    0.9000
+  F1 Score:  0.8182
+  ROC-AUC:   0.9643
+  Sharpe:    6.083
   Confusion Matrix:
-    [    7 |    2 ] (True Neg | False Pos)
-    [    4 |    6 ] (False Neg | True Pos)
+    [   11 |    3 ] (True Neg | False Pos)
+    [    1 |    9 ] (False Neg | True Pos)

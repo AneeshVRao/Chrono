@@ -239,10 +239,10 @@ class FeatureBuilder:
             # Data versioning metadata
             import json
             import hashlib
-            from datetime import datetime
+            from datetime import datetime, timezone
             
             metadata = {
-                "version": datetime.utcnow().isoformat(),
+                "version": datetime.now(timezone.utc).isoformat(),
                 "num_rows": int(combined.shape[0]),
                 "num_columns": int(combined.shape[1]),
                 "tickers": list(data.keys()),

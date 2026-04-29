@@ -28,6 +28,7 @@ import pandas as pd
 try:
     import optuna
     from optuna.samplers import TPESampler
+    from optuna.pruners import MedianPruner
 
     OPTUNA_AVAILABLE = True
 except ImportError:
@@ -82,6 +83,7 @@ class OptunaTuner:
         random_seed: int = 42,
         timeout_seconds: int | None = 120,
         custom_spaces: dict[str, dict] | None = None,
+        adaptive_trials: bool = True,
     ) -> None:
         if not OPTUNA_AVAILABLE:
             raise ImportError(
@@ -93,12 +95,14 @@ class OptunaTuner:
         self.random_seed = random_seed
         self.timeout_seconds = timeout_seconds
         self.spaces = {**DEFAULT_SPACES, **(custom_spaces or {})}
+        self.adaptive_trials = adaptive_trials
 
         # Populated after each .tune() call
         self._study: optuna.Study | None = None
         self._best_params: dict[str, Any] = {}
         self._model_name: str = ""
         self._fold_results: list[dict[str, Any]] = []
+        self._folds_tuned: int = 0  # Track how many folds have been tuned
 
     # ------------------------------------------------------------------
     # Public API
@@ -133,27 +137,44 @@ class OptunaTuner:
         # Suppress Optuna's verbose output
         optuna.logging.set_verbosity(optuna.logging.WARNING)
 
-        sampler = TPESampler(seed=self.random_seed)
+        # Adaptive trial count: full budget on fold 1, reduced for subsequent folds
+        # since the search space is already well-explored
+        if self.adaptive_trials and self._folds_tuned > 0:
+            effective_trials = max(5, self.n_trials // 3)
+            effective_timeout = max(20, (self.timeout_seconds or 120) // 3)
+        else:
+            effective_trials = self.n_trials
+            effective_timeout = self.timeout_seconds
+
+        sampler = TPESampler(seed=self.random_seed + self._folds_tuned)
+        pruner = MedianPruner(n_startup_trials=3, n_warmup_steps=1)
         self._study = optuna.create_study(
             direction="maximize",          # maximise AUC
             sampler=sampler,
+            pruner=pruner,
             study_name=f"{model_name}_fold_tune",
         )
+
+        # Enqueue best params from previous fold as a warm-start trial
+        if self._best_params and self._folds_tuned > 0:
+            self._study.enqueue_trial(self._best_params)
 
         # Build objective closure
         objective = self._make_objective(model_name, space, X_train, y_train)
 
         self._study.optimize(
             objective,
-            n_trials=self.n_trials,
-            timeout=self.timeout_seconds,
+            n_trials=effective_trials,
+            timeout=effective_timeout,
             show_progress_bar=False,
         )
 
         self._best_params = self._study.best_params
+        self._folds_tuned += 1
+        n_pruned = len([t for t in self._study.trials if t.state == optuna.trial.TrialState.PRUNED])
         logger.info(
             f"  [Optuna] {model_name}: best AUC={self._study.best_value:.4f} "
-            f"in {len(self._study.trials)} trials  ▸ {self._best_params}"
+            f"in {len(self._study.trials)} trials ({n_pruned} pruned)  ▸ {self._best_params}"
         )
         return self._best_params
 
@@ -213,15 +234,23 @@ class OptunaTuner:
         X: np.ndarray,
         y: np.ndarray,
     ):
-        """Return an Optuna objective function that uses TimeSeriesSplit CV."""
+        """Return an Optuna objective function that uses TimeSeriesSplit CV.
+        
+        Supports intermediate value reporting for Optuna pruning:
+        after each CV fold, the running mean AUC is reported so the
+        MedianPruner can kill underperforming trials early.
+        """
 
         cv = TimeSeriesSplit(n_splits=self.cv_splits)
 
         def objective(trial: "optuna.Trial") -> float:
             params = self._suggest_params(trial, space)
+            # Cap n_estimators to reduce per-trial time
+            if "n_estimators" in params:
+                params["n_estimators"] = min(params["n_estimators"], 300)
             aucs: list[float] = []
 
-            for train_idx, val_idx in cv.split(X):
+            for step, (train_idx, val_idx) in enumerate(cv.split(X)):
                 X_tr, X_val = X[train_idx], X[val_idx]
                 y_tr, y_val = y[train_idx], y[val_idx]
 
@@ -233,7 +262,16 @@ class OptunaTuner:
 
                 with warnings.catch_warnings():
                     warnings.simplefilter("ignore")
-                    model.fit(X_tr, y_tr)
+                    # Use early_stopping via eval_set for tree models
+                    if model_name in ("XGBoost", "LightGBM"):
+                        fit_params = {
+                            "eval_set": [(X_val, y_val)],
+                        }
+                        if model_name == "XGBoost":
+                            fit_params["verbose"] = False
+                        model.fit(X_tr, y_tr, **fit_params)
+                    else:
+                        model.fit(X_tr, y_tr)
 
                 probas = model.predict_proba(X_val)
                 # Handle 2-column output
@@ -248,6 +286,11 @@ class OptunaTuner:
                     fold_auc = 0.5
 
                 aucs.append(fold_auc)
+                
+                # Report intermediate value for pruning
+                trial.report(float(np.mean(aucs)), step)
+                if trial.should_prune():
+                    raise optuna.TrialPruned()
 
             return float(np.mean(aucs)) if aucs else 0.5
 
@@ -270,13 +313,18 @@ class OptunaTuner:
 
     @staticmethod
     def _build_model(model_name: str, params: dict):
-        """Instantiate a raw sklearn-API model with given params."""
+        """Instantiate a raw sklearn-API model with given params.
+        
+        Uses early_stopping_rounds to halt training when validation 
+        performance plateaus, preventing wasted compute.
+        """
         if model_name == "XGBoost":
             from xgboost import XGBClassifier
 
             return XGBClassifier(
                 **params,
                 eval_metric="logloss",
+                early_stopping_rounds=20,
                 random_state=42,
             )
         elif model_name == "LightGBM":
@@ -288,6 +336,7 @@ class OptunaTuner:
                 min_child_samples=20,
                 random_state=42,
                 verbose=-1,
+                n_iter_no_change=20,
             )
         else:
             raise ValueError(f"Unsupported model for tuning: {model_name}")

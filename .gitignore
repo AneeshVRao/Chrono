@@ -43,6 +43,15 @@ data/features/
 .env.*
 
 # Temp / audit output
+audit_report.txt
+bug_summary.txt
+err.txt
+ic_decay_plot.png
+ic_summary.csv
+ml_backtest*.txt
+
+# Generated reports (logs/ is already ignored)
+logs/
 
 # Jupyter
 .ipynb_checkpoints/

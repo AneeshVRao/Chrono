@@ -26,6 +26,8 @@ class Config:
 
         with open(path, "r", encoding="utf-8") as f:
             self._cfg: dict[str, Any] = yaml.safe_load(f)
+            
+        self.validate()
 
     # -- convenience accessors ------------------------------------------
 
@@ -99,3 +101,23 @@ class Config:
             else:
                 return default
         return node
+
+    def validate(self) -> None:
+        """Validate configuration settings for correctness."""
+        if not self.tickers:
+            raise ValueError("Config error: 'data.tickers' list is empty.")
+        
+        if not self.start_date:
+            raise ValueError("Config error: 'data.date_range.start' is missing.")
+            
+        bt_cfg = self.backtesting_params
+        if bt_cfg and "walk_forward" in bt_cfg:
+            folds = bt_cfg["walk_forward"].get("n_splits", 0)
+            if folds < 2:
+                raise ValueError("Config error: 'backtesting.walk_forward.n_splits' must be at least 2 for walk-forward CV.")
+                
+        ml_cfg = self.ml_pipeline
+        if ml_cfg and "optuna" in ml_cfg:
+            optuna_trials = ml_cfg["optuna"].get("n_trials", 0)
+            if ml_cfg["optuna"].get("use_optuna") and optuna_trials < 1:
+                raise ValueError("Config error: 'ml_pipeline.optuna.n_trials' must be at least 1 when optuna is enabled.")
