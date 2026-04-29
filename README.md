@@ -364,8 +364,8 @@ Chrono/
 - [ ] **Risk Parity** — Inverse-volatility weighting across assets
 - [ ] **LSTM / Transformer Models** — Sequence-based return prediction
 - [ ] **Feature Selection via SHAP** — Model-agnostic importance analysis
-- [ ] **Live Paper Trading** — Forward-test with broker API integration
-- [ ] **Streamlit Dashboard** — Real-time portfolio monitoring and visualization
+- [x] **Live Paper Trading** — Forward-test with broker API integration (Alpaca paper trading wrapper and daemon).
+- [x] **Streamlit Dashboard** — Real-time portfolio monitoring and visualization (vs SPY, drawdowns, trade logs, regimes).
 - [ ] **Reinforcement Learning** — Explore policy-gradient methods for dynamic allocation
 
 ---

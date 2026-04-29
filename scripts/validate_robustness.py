@@ -59,6 +59,8 @@ def get_feature_cols(df: pd.DataFrame) -> list[str]:
             continue
         if c.startswith("pred_") or c.startswith("proba_"):
             continue
+        if c.startswith("meta_"):  # Meta-model outputs must not leak into primary features
+            continue
         cols.append(c)
     return cols
 
@@ -502,6 +504,83 @@ def final_verdict(
     print("\n" + "=" * 70)
 
 
+# ─── PHASE 6: Feature Importance Ranking ───────────────────────
+
+def phase_6_feature_importance(df: pd.DataFrame, feature_cols: list[str]) -> pd.DataFrame:
+    """Rank features by XGBoost importance. Highlight macro features."""
+    print("\n" + "=" * 70)
+    print("  PHASE 6: FEATURE IMPORTANCE RANKING")
+    print("=" * 70)
+
+    clean = df.dropna(subset=["target_direction"]).sort_index()
+    split_idx = int(len(clean) * 0.8)
+    train_df = clean.iloc[:split_idx]
+
+    X_train = train_df[feature_cols].ffill().fillna(0).values
+    y_train = train_df["target_direction"].values
+
+    if len(np.unique(y_train)) < 2:
+        print("  [!] Not enough class diversity for feature importance.")
+        return pd.DataFrame()
+
+    scaler = StandardScaler()
+    X_tr = scaler.fit_transform(X_train)
+
+    xgb = XGBClassifier(
+        n_estimators=200, max_depth=4, learning_rate=0.1,
+        eval_metric="logloss", random_state=42, verbosity=0
+    )
+    xgb.fit(X_tr, y_train)
+
+    importances = xgb.feature_importances_
+    importance_df = pd.DataFrame({
+        "feature": feature_cols,
+        "importance": importances,
+        "is_macro": [c.startswith("macro_") for c in feature_cols],
+    }).sort_values("importance", ascending=False).reset_index(drop=True)
+    importance_df["rank"] = importance_df.index + 1
+
+    # Top 20
+    top20 = importance_df.head(20)
+    print("\n  Top 20 Features by Importance:")
+    print("  " + "-" * 60)
+    for _, row in top20.iterrows():
+        macro_tag = "  [MACRO]" if row["is_macro"] else ""
+        print(f"  {row['rank']:3d}. {row['feature']:40s}  {row['importance']:.4f}{macro_tag}")
+
+    # Macro feature summary
+    macro_feats = importance_df[importance_df["is_macro"]]
+    macro_in_top20 = top20[top20["is_macro"]]
+    total_macro = len(macro_feats)
+    n_in_top20 = len(macro_in_top20)
+
+    print(f"\n  Macro Features Summary:")
+    print(f"    Total macro features: {total_macro}")
+    print(f"    Macro features in top 20: {n_in_top20}")
+
+    if total_macro > 0:
+        avg_macro_rank = macro_feats["rank"].mean()
+        avg_macro_importance = macro_feats["importance"].mean()
+        avg_all_importance = importance_df["importance"].mean()
+        print(f"    Average macro rank: {avg_macro_rank:.1f} / {len(feature_cols)}")
+        print(f"    Average macro importance: {avg_macro_importance:.4f} (all features avg: {avg_all_importance:.4f})")
+
+        if n_in_top20 > 0:
+            print("\n    Macro features in Top 20:")
+            for _, row in macro_in_top20.iterrows():
+                print(f"      #{row['rank']:2d}  {row['feature']:40s}  {row['importance']:.4f}")
+            print("  [OK] Macro features contribute to top-tier feature importance.")
+        elif avg_macro_importance > avg_all_importance:
+            print("  [~] Macro features above average importance but not in top 20.")
+        else:
+            print("  [!] Macro features are below average importance.")
+    else:
+        print("  [!] No macro features found in the feature set.")
+
+    print("\n" + "=" * 70)
+    return importance_df
+
+
 # ─── MAIN ───────────────────────────────────────────────────────
 
 def main() -> None:
@@ -514,12 +593,17 @@ def main() -> None:
     df = load_all_features()
     feature_cols = get_feature_cols(df)
     print(f"Loaded {len(df)} rows, {len(feature_cols)} features.")
+    
+    # Count macro features
+    macro_cols = [c for c in feature_cols if c.startswith("macro_")]
+    print(f"  Macro features detected: {len(macro_cols)}")
 
     time_results = phase_1_time_robustness(df, feature_cols)
     feature_results = phase_2_feature_stability(df, feature_cols)
     phase3_result = phase_3_randomization_test(df, feature_cols)
     cost_results = phase_4_cost_stress(df, feature_cols)
     phase5_result = phase_5_outlier_dependence(df, feature_cols)
+    importance_df = phase_6_feature_importance(df, feature_cols)
 
     final_verdict(phase3_result, phase5_result, time_results, feature_results, cost_results)
 
@@ -540,7 +624,19 @@ def main() -> None:
         f.write(cost_results.to_string(index=False) + "\n\n")
         f.write(f"Phase 5 -- Outlier Dependence: {phase5_result['verdict']}\n")
         f.write(f"  Full Sharpe:    {phase5_result['full']:+.3f}\n")
-        f.write(f"  No Top5 Sharpe: {phase5_result['no_top5']:+.3f}\n")
+        f.write(f"  No Top5 Sharpe: {phase5_result['no_top5']:+.3f}\n\n")
+        
+        # Phase 6 -- Feature Importance
+        f.write("Phase 6 -- Feature Importance Ranking:\n")
+        if not importance_df.empty:
+            f.write(importance_df.head(30).to_string(index=False) + "\n\n")
+            macro_in_top20 = importance_df.head(20)[importance_df.head(20)["is_macro"]]
+            f.write(f"  Macro features in top 20: {len(macro_in_top20)}\n")
+            if len(macro_in_top20) > 0:
+                for _, row in macro_in_top20.iterrows():
+                    f.write(f"    #{row['rank']:2d}  {row['feature']}  {row['importance']:.4f}\n")
+        else:
+            f.write("  (no data)\n")
 
     print(f"\nReport saved to logs/metrics/robustness_report.txt")
     print(f"Completed in {time.time() - t0:.1f}s")

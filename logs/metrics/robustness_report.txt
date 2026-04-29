@@ -3,27 +3,80 @@ CHRONO -- STRATEGY ROBUSTNESS VALIDATION
 
 Phase 1 -- Time Robustness:
 label  accuracy       f1      auc  n_test                   period
-Early  0.562544 0.615006 0.559873    1431 2018-02-07 -> 2020-09-25
-  Mid  0.466806 0.471972 0.465926    1431 2020-09-28 -> 2023-03-31
- Late  0.515024 0.614872 0.489656    1431 2023-03-31 -> 2025-12-29
+Early  0.532078 0.578782 0.542045    1434 2018-02-01 -> 2020-09-22
+  Mid  0.488842 0.398687 0.479910    1434 2020-09-22 -> 2023-03-29
+ Late  0.516039 0.626882 0.474821    1434 2023-03-30 -> 2025-12-29
 
 Phase 2 -- Feature Stability:
               label  accuracy       f1      auc  n_test
-      Full Features  0.529535 0.628177 0.506004    2861
-   Top 50% Features  0.543866 0.650602 0.511667    2861
-Random 50% Features  0.537574 0.620591 0.510412    2861
+      Full Features  0.533821 0.643562 0.502046    2868
+   Top 50% Features  0.524756 0.633897 0.494898    2868
+Random 50% Features  0.539052 0.663955 0.520661    2868
 
 Phase 3 -- Randomization: PASS
-  Real Acc:     0.5295
-  Shuffled Acc: 0.5170
+  Real Acc:     0.5338
+  Shuffled Acc: 0.5199
 
 Phase 4 -- Cost Stress:
-Cost     CAGR Sharpe         MaxDD                  Total Return
-0.1% -100.00%  2.338 -27339157.39% -556868921421876372176896.00%
-0.5% -100.00%  2.305     -4692.91%      -4784075773941729280.00%
-1.0% 1561.06%  2.263   -131538.10%          7165427474938580.00%
-2.0%   77.12%  2.180     -1397.21%                     65744.57%
+Cost     CAGR Sharpe    MaxDD Total Return
+0.1% -100.00%  2.690 -110.15%     -100.00%
+0.5% -100.00%  2.679 -110.04%     -100.00%
+1.0% -100.00%  2.666 -110.30%     -100.00%
+2.0% -100.00%  2.639 -110.84%     -100.00%
 
 Phase 5 -- Outlier Dependence: ROBUST
-  Full Sharpe:    +2.347
-  No Top5 Sharpe: +2.259
+  Full Sharpe:    +2.693
+  No Top5 Sharpe: +2.611
+
+Phase 6 -- Feature Importance Ranking:
+             feature  importance  is_macro  rank
+portfolio_avg_return    0.024385     False     1
+   macro_VIX_vol_20d    0.022085      True     2
+   regime_is_low_vol    0.020990     False     3
+    macro_TLT_ret_5d    0.020525      True     4
+     macro_GLD_trend    0.020447      True     5
+   macro_DXY_ret_10d    0.020215      True     6
+    macro_VIX_ret_1d    0.020025      True     7
+macro_GLD_zscore_60d    0.019430      True     8
+    macro_DXY_ret_5d    0.019354      True     9
+     macro_TLT_trend    0.019177      True    10
+   macro_DXY_vol_20d    0.019109      True    11
+     macro_DXY_trend    0.019066      True    12
+   macro_TLT_ret_10d    0.018719      True    13
+   macro_TLT_vol_20d    0.018551      True    14
+   macro_GLD_ret_10d    0.018286      True    15
+   macro_GLD_vol_20d    0.018170      True    16
+macro_VIX_zscore_60d    0.017947      True    17
+macro_DXY_zscore_60d    0.017753      True    18
+macro_TLT_zscore_60d    0.017694      True    19
+    macro_GLD_ret_5d    0.017595      True    20
+    macro_DXY_ret_1d    0.017295      True    21
+             dow_cos    0.016928     False    22
+    macro_VIX_ret_5d    0.016871      True    23
+     macro_VIX_trend    0.016710      True    24
+   macro_VIX_ret_10d    0.016331      True    25
+    macro_GLD_ret_1d    0.015824      True    26
+             sma_200    0.013510     False    27
+    macro_TLT_ret_1d    0.013276      True    28
+       market_regime    0.012377     False    29
+              ema_26    0.012137     False    30
+
+  Macro features in top 20: 18
+    # 2  macro_VIX_vol_20d  0.0221
+    # 4  macro_TLT_ret_5d  0.0205
+    # 5  macro_GLD_trend  0.0204
+    # 6  macro_DXY_ret_10d  0.0202
+    # 7  macro_VIX_ret_1d  0.0200
+    # 8  macro_GLD_zscore_60d  0.0194
+    # 9  macro_DXY_ret_5d  0.0194
+    #10  macro_TLT_trend  0.0192
+    #11  macro_DXY_vol_20d  0.0191
+    #12  macro_DXY_trend  0.0191
+    #13  macro_TLT_ret_10d  0.0187
+    #14  macro_TLT_vol_20d  0.0186
+    #15  macro_GLD_ret_10d  0.0183
+    #16  macro_GLD_vol_20d  0.0182
+    #17  macro_VIX_zscore_60d  0.0179
+    #18  macro_DXY_zscore_60d  0.0178
+    #19  macro_TLT_zscore_60d  0.0177
+    #20  macro_GLD_ret_5d  0.0176

@@ -1,5 +1,4 @@
-# === Phase 1: Data Pipeline + Feature Engineering ===
-# Core
+# === Core Dependencies ===
 pandas>=2.0.0
 numpy>=1.24.0
 pyarrow>=14.0.0
@@ -7,15 +6,37 @@ pyarrow>=14.0.0
 # Data Sources
 yfinance>=0.2.31
 
-# Technical Indicators
-pandas-ta>=0.3.14b1
-
 # Configuration
 pyyaml>=6.0
 
 # Logging & Utils
 python-dateutil>=2.8.0
 
+# Machine Learning
+scikit-learn>=1.0.0
+xgboost>=2.0.0
+lightgbm>=4.0.0
+
+# Hyperparameter Optimisation
+optuna>=3.0.0
+
+# Portfolio Optimisation (CVaR)
+scipy>=1.10.0
+
+# Visualization & Analysis
+matplotlib>=3.7.0
+shap>=0.42.0
+
+# Paper Trading Execution
+alpaca-trade-api>=3.0.0
+
+# Dashboard
+streamlit>=1.28.0
+plotly>=5.18.0
+
+# Credential Management
+python-dotenv>=1.0.0
+
 # Type Checking (dev)
 mypy>=1.0.0
-scikit-learn>=1.0.0
+pytest>=7.0.0

@@ -91,4 +91,9 @@ class MLStrategy(BaseStrategy):
                 if self.allow_shorts:
                     signals_array[(regimes == 0) & (base_signals < 0) & (ret_1d < 0)] = 0.0
 
+        # Meta-Model Gate: Override to flat if meta-model predicts 0 (bad trade)
+        if "meta_pred" in df.columns:
+            meta_pred = df["meta_pred"].values
+            signals_array[meta_pred == 0] = 0.0
+
         return pd.Series(signals_array, index=df.index, dtype=float)

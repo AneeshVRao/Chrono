@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
+import concurrent.futures
 
 import pandas as pd
 import numpy as np
@@ -17,6 +18,7 @@ import numpy as np
 from src.features.technical_indicators import TechnicalIndicators
 from src.features.returns_features import ReturnsFeatures
 from src.features.regime_features import RegimeFeatures
+from src.features.macro_features import MacroFeatures
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -38,6 +40,7 @@ class FeatureBuilder:
         self.tech = TechnicalIndicators(feature_params)
         self.returns = ReturnsFeatures(feature_params)
         self.regimes = RegimeFeatures(feature_params.get("regimes", {}))
+        self.macro = MacroFeatures(feature_params.get("macro", {}))
 
         # Target config
         target_cfg = feature_params.get("target", {})
@@ -143,42 +146,113 @@ class FeatureBuilder:
             portfolio_avg_return = pd.concat(returns_list, axis=1).mean(axis=1)
         else:
             portfolio_avg_return = None
+        
+        # --- Pre-fetch Macro Cross-Asset Features (shared across all tickers) ---
+        # Compute a unified equity date index for alignment
+        all_equity_dates = pd.DatetimeIndex([])
+        for df in cleaned_data.values():
+            all_equity_dates = all_equity_dates.union(df.index)
+        all_equity_dates = all_equity_dates.sort_values()
+        
+        # Determine date range for macro data fetch
+        if len(all_equity_dates) > 0:
+            # Fetch extra history for warmup (macro rolling windows need lookback)
+            macro_start = (all_equity_dates[0] - pd.Timedelta(days=120)).strftime("%Y-%m-%d")
+            macro_end = all_equity_dates[-1].strftime("%Y-%m-%d")
+            macro_features_df = self.macro.build_macro_features(
+                equity_index=all_equity_dates,
+                start=macro_start,
+                end=macro_end,
+            )
+            logger.info(
+                f"Macro features computed: {macro_features_df.shape[1]} columns, "
+                f"{macro_features_df.shape[0]} rows"
+            )
+        else:
+            macro_features_df = pd.DataFrame()
             
-        # --- Build Features Iteratively ---
-        for ticker, df in cleaned_data.items():
-            df_copy = df.copy()
+        # --- Build Features Iteratively (Parallel) ---
+        def process_ticker(ticker_name: str, ticker_df: pd.DataFrame) -> tuple[str, pd.DataFrame]:
+            df_copy = ticker_df.copy()
             
             # Inject Cross-Asset Data dynamically
             if portfolio_avg_return is not None:
                 # Add it so that `build_features` picks it up directly
                 df_copy = df_copy.join(portfolio_avg_return.rename("portfolio_avg_return"), how="left")
-                
-            featured = self.build_features(df_copy, ticker)
             
-            # Cleanup injected feature from final matrix if desired (optional, we keep it for ML tracking)
-            # Actually, keeping it perfectly validates Phase 5!
-            if not featured.empty:
-                results[ticker] = featured
+            # Inject Macro Cross-Asset Features (aligned by timestamp)
+            if not macro_features_df.empty:
+                # Left-join on date index — strict timestamp alignment
+                df_copy = df_copy.join(macro_features_df, how="left")
+                
+            featured = self.build_features(df_copy, ticker_name)
+            return ticker_name, featured
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future_to_ticker = {
+                executor.submit(process_ticker, ticker, df): ticker 
+                for ticker, df in cleaned_data.items()
+            }
+            for future in concurrent.futures.as_completed(future_to_ticker):
+                ticker_name = future_to_ticker[future]
+                try:
+                    ticker, featured = future.result()
+                    if not featured.empty:
+                        results[ticker] = featured
+                except Exception as exc:
+                    logger.error(f"Feature building for {ticker_name} generated an exception: {exc}")
                 
         return results
 
     def save_features(self, data: dict[str, pd.DataFrame]) -> list[Path]:
-        """Save feature DataFrames to Parquet."""
+        """Save feature DataFrames to Parquet.
+
+        Applies ffill().fillna(0) on feature columns before saving to
+        guarantee no NaN values reach the backtest engine or ML pipeline.
+        Target columns (target_fwd_return, target_direction) are preserved
+        as-is — their NaNs are intentional (trailing edge + no-trade zone).
+        """
         saved: list[Path] = []
         for ticker, df in data.items():
+            df = df.copy()
+            feature_cols = self.get_feature_columns(df)
+            df[feature_cols] = df[feature_cols].ffill().fillna(0)
             path = self.output_dir / f"{ticker}_features.parquet"
             df.to_parquet(path, engine="pyarrow", index=True)
             saved.append(path)
 
         # Also save combined multi-ticker dataset
         if data:
-            combined = pd.concat(data.values(), axis=0)
+            combined = pd.concat(data.values(), axis=0).sort_index()
+            
+            # Forward fill and set default edge cases to 0, ensuring No-NaN downstream
+            feature_cols = self.get_feature_columns(combined)
+            combined[feature_cols] = combined[feature_cols].ffill().fillna(0)
+            
             combined_path = self.output_dir / "all_features.parquet"
             combined.to_parquet(combined_path, engine="pyarrow", index=True)
             saved.append(combined_path)
             logger.info(
                 f"Combined feature matrix: {combined.shape[0]} rows × {combined.shape[1]} columns"
             )
+
+            # Data versioning metadata
+            import json
+            import hashlib
+            from datetime import datetime
+            
+            metadata = {
+                "version": datetime.utcnow().isoformat(),
+                "num_rows": int(combined.shape[0]),
+                "num_columns": int(combined.shape[1]),
+                "tickers": list(data.keys()),
+                "feature_columns": feature_cols,
+                "params": self.params
+            }
+            metadata_path = self.output_dir / "feature_metadata.json"
+            with open(metadata_path, "w") as f:
+                json.dump(metadata, f, indent=4)
+            saved.append(metadata_path)
 
         logger.info(f"Saved {len(saved)} feature files to {self.output_dir}")
         return saved
@@ -189,15 +263,19 @@ class FeatureBuilder:
             "ticker", "is_outlier", "open", "high", "low", "close", "volume",
             "target_fwd_return", "target_direction",
             "day_of_week", "month", "quarter",  # raw calendar (keep encoded versions)
-            "dow_sin", "regime_is_trending_up", "relative_strength_portfolio" # Low-Information features identified during Optimization
+            "dow_sin", "dow_cos",  # cyclical calendar features excluded (low IC)
+            "regime_is_trending_up", "relative_strength_portfolio",  # Low-Information features identified during Optimization
+            "obv",  # non-stationary cumsum — only obv_zscore is usable
         }
         
-        # Hard block prediction output injections
+        # Hard block prediction output injections and meta-model columns
         valid_cols = []
         for c in df.columns:
             if c in exclude:
                 continue
             if c.startswith("pred_") or c.startswith("proba_"):
+                continue
+            if c.startswith("meta_"):  # Meta-model outputs must not leak into primary features
                 continue
             valid_cols.append(c)
             

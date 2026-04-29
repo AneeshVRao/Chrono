@@ -1,4 +1,4 @@
-﻿"""
+"""
 Data cleaner — handles missing values, outliers, and resampling.
 Produces analysis-ready OHLCV data.
 """
@@ -57,13 +57,13 @@ class DataCleaner:
         return True
 
     def fill_missing(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Fill missing values using configured method."""
+        """Fill missing values using configured method (STRICTLY NO BFILL)."""
         if self.fill_method == "ffill":
-            df = df.ffill().bfill()  # ffill then bfill for leading NaNs
+            df = df.ffill() 
         elif self.fill_method == "interpolate":
-            df = df.interpolate(method="time").bfill()
+            df = df.interpolate(method="time")
         else:
-            df = df.ffill().bfill()
+            df = df.ffill()
         return df
 
     def flag_outliers(self, df: pd.DataFrame) -> pd.DataFrame:
