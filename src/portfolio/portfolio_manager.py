@@ -209,7 +209,7 @@ class CVaROptimizer:
 class PortfolioManager:
     """
     Groups asset positions and computes final portfolio-level allocations.
-    Supports: equal_weight, risk_parity, cvar
+    Supports: equal_weight, risk_parity, cvar, cross_sectional
     """
 
     def __init__(
@@ -240,6 +240,9 @@ class PortfolioManager:
 
         elif self.allocation_type == "cvar":
             return self._cvar_allocation(df_positions)
+            
+        elif self.allocation_type == "cross_sectional":
+            return self._cross_sectional_allocation(df_positions)
 
         raise NotImplementedError(f"Allocation method {self.allocation_type} not supported.")
 
@@ -275,6 +278,36 @@ class PortfolioManager:
 
         # Apply weights to positions
         allocated = df_positions * weights
+        return allocated
+
+    # ── Cross-Sectional Allocation ──────────────────────────────────────────
+    def _cross_sectional_allocation(self, df_positions: pd.DataFrame) -> pd.DataFrame:
+        """
+        Cross-sectional momentum allocation.
+        Ranks active signals on each day and allocates capital only to the top half
+        of the assets with the strongest signals, ignoring weak signals entirely.
+        This provides relative strength filtering.
+        """
+        allocated = pd.DataFrame(0.0, index=df_positions.index, columns=df_positions.columns)
+        
+        for dt, row in df_positions.iterrows():
+            # Consider only positive long signals for ranking
+            active = row[row > 0]
+            if len(active) == 0:
+                continue
+                
+            # If less than 3 assets are active, just equal weight them
+            if len(active) < 3:
+                allocated.loc[dt, active.index] = 1.0 / len(active)
+                continue
+                
+            # Keep top half of active signals
+            k = max(1, len(active) // 2)
+            top_k = active.nlargest(k)
+            
+            # Equal weight among top_k winners
+            allocated.loc[dt, top_k.index] = 1.0 / len(top_k)
+            
         return allocated
 
     # ── CVaR Allocation ─────────────────────────────────────────────────────
