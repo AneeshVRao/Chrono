@@ -23,6 +23,7 @@ from src.pipeline.backtest_runner import BacktestRunner
 from src.core.backtesting.metrics import MetricsCalculator
 
 import numpy as np
+import pandas as pd
 
 
 def parse_args() -> argparse.Namespace:
@@ -75,51 +76,131 @@ def main() -> None:
 
     setup_logging(level=cfg.log_level, log_dir=cfg.project_root / "logs")
 
-    runner = BacktestRunner(cfg)
-    
-    t0 = time.time()
-    
     tickers_to_run = [args.ticker.upper()] if args.ticker else cfg.tickers
 
+    # ── Phase 4, 5 & 6: Portfolio Execution & Sensitivities ──────────
+    t0 = time.time()
+
+    # ── Before vs After: Execution Model Comparison ──────────────────
+    # 1. Baseline run (execution model OFF)
+    original_exec_cfg = cfg._cfg.get("execution_model", {}).copy()
+    cfg._cfg.setdefault("execution_model", {})["use_slippage_model"] = False
+
+    runner_baseline = BacktestRunner(cfg)
+    _, baseline_reports = runner_baseline.run_all(tickers=tickers_to_run)
+
+    # Extract baseline Ensemble report
+    baseline_ensemble = next(
+        (r for r in baseline_reports if "Ensemble" in r.strategy_name and r.ticker == "PORTFOLIO"), None
+    )
+
+    # 2. Full run (execution model ON — restore original config)
+    cfg._cfg["execution_model"] = original_exec_cfg
+    if "use_slippage_model" not in cfg._cfg["execution_model"]:
+        cfg._cfg["execution_model"]["use_slippage_model"] = True
+
+    runner = BacktestRunner(cfg)
     all_results, all_reports = runner.run_all(tickers=tickers_to_run)
 
-    # ── Walk-forward validation (keep printing logic isolated) ────
-    for ticker in tickers_to_run:
-        for strategy in runner.strategies:
-            fold_reports = runner.run_walk_forward(ticker, strategy)
-            print_walk_forward_results(fold_reports, strategy.name, ticker)
+    # Extract execution-model-on Ensemble report
+    exec_ensemble = next(
+        (r for r in all_reports if "Ensemble" in r.strategy_name and r.ticker == "PORTFOLIO"), None
+    )
+
+    # 3. Print before vs after comparison
+    print(f"\n{'=' * 70}")
+    print(f"  EXECUTION MODEL: BEFORE vs AFTER COMPARISON")
+    print(f"{'=' * 70}")
+    print(f"  {'Metric':<22s} {'WITHOUT Exec Model':>20s} {'WITH Exec Model':>20s} {'Delta':>12s}")
+    print(f"  {'-' * 76}")
+
+    if baseline_ensemble and exec_ensemble:
+        metrics_pairs = [
+            ("Sharpe Ratio", baseline_ensemble.sharpe_ratio, exec_ensemble.sharpe_ratio, ".3f"),
+            ("CAGR", baseline_ensemble.cagr, exec_ensemble.cagr, ".2%"),
+            ("Max Drawdown", baseline_ensemble.max_drawdown, exec_ensemble.max_drawdown, ".2%"),
+            ("Total Return", baseline_ensemble.total_return, exec_ensemble.total_return, ".2%"),
+            ("Sortino Ratio", baseline_ensemble.sortino_ratio, exec_ensemble.sortino_ratio, ".3f"),
+            ("Win Rate", baseline_ensemble.win_rate, exec_ensemble.win_rate, ".2%"),
+        ]
+        for name, before, after, fmt in metrics_pairs:
+            delta = after - before
+            print(f"  {name:<22s} {format(before, fmt):>20s} {format(after, fmt):>20s} {format(delta, '+' + fmt):>12s}")
+    else:
+        print("  Could not extract Ensemble PORTFOLIO reports for comparison.")
+
+    # 4. Extract Benchmark for alpha calculation
+    bench_res = next(
+        (r for r in all_reports if "Buy" in r.strategy_name and r.ticker == "PORTFOLIO"), None
+    )
+
+    alpha_ann = 0.0
+    info_ratio = 0.0
+
+    if exec_ensemble and bench_res:
+        alpha_ann = exec_ensemble.cagr - bench_res.cagr
+        # Simple info ratio from annualized alpha / vol difference
+        vol_diff = exec_ensemble.annualized_volatility
+        info_ratio = alpha_ann / vol_diff if vol_diff > 1e-8 else 0.0
+
+    # 5. Cost Sensitivity Analysis (with execution model enabled)
+    costs = {
+        "Low (0.1%)": {"slippage_bps": 5.0, "commission_bps": 5.0},
+        "Medium (0.5%)": {"slippage_bps": 25.0, "commission_bps": 25.0},
+        "High (1.0%)": {"slippage_bps": 50.0, "commission_bps": 50.0}
+    }
+
+    sensitivity_reports = []
+    print(f"\n============================================================")
+    print(f"  PHASE 5: COST SENSITIVITY ANALYSIS (Ensemble Portfolio)")
+    print(f"============================================================")
+    for cost_name, cost_dict in costs.items():
+        cfg._cfg["backtesting"]["transaction_costs"] = cost_dict
+        temp_runner = BacktestRunner(cfg)
+
+        # Filter down to just Ensemble to save time
+        temp_runner.strategies = [s for s in temp_runner.strategies if s.name == "ML_Strategy(Ensemble)"]
+        _, reports = temp_runner.run_all(tickers=tickers_to_run)
+
+        if reports:
+            ens_rep = reports[0]
+            sensitivity_reports.append({
+                "Cost Regime": cost_name,
+                "CAGR": f"{ens_rep.cagr:.2%}",
+                "Sharpe": f"{ens_rep.sharpe_ratio:.3f}",
+                "Max DD": f"{ens_rep.max_drawdown:.2%}",
+            })
+
+    sens_df = pd.DataFrame(sensitivity_reports).set_index("Cost Regime")
+    print(sens_df.to_string())
 
     # ── Summary ────────────────────────────────────────────────────────
     elapsed = time.time() - t0
 
-    print(f"\n\n{'=' * 70}")
-    print(f"  BACKTEST RESULTS SUMMARY")
-    print(f"{'=' * 70}\n")
+    print(f"\n\n{'=' * 80}")
+    print(f"  PHASE 7: FINAL PORTFOLIO AUDIT REPORT")
+    print(f"{'=' * 80}\n")
 
-    # Comparison table
+    # Overall Portfolio Metrics Comparison
     calc = MetricsCalculator()
     comparison = calc.compare(all_reports)
     print(comparison.to_string())
 
-    # Equity curve summaries (first ticker only to keep output manageable)
-    for result in all_results[:3]:  # first ticker: momentum, mean_rev, benchmark
-        print_equity_curve_summary(result)
+    print(f"\n{'-' * 80}")
+    print(f"  PHASE 6: BENCHMARK COMPARISON (Ensemble vs Equal-Weight B&H)")
+    print(f"{'-' * 80}")
+    print(f"  Annualized Alpha:   {alpha_ann:+.2%}")
+    print(f"  Information Ratio:  {info_ratio:+.3f}")
 
-    print(f"\n{'=' * 70}")
-    print(f"  Pipeline completed in {elapsed:.1f}s")
-    print(f"  Tickers: {len(tickers_to_run)}  |  Strategies: {len(runner.strategies) + 1}")
-    print(f"{'=' * 70}")
-
-    # ── Phase 3 connection point ───────────────────────────────────────
-    print(f"\n>> PHASE 3 CONNECTION POINT:")
-    print(f"   To plug in ML predictions, create a class that inherits BaseStrategy")
-    print(f"   and implements generate_signals(df) -> pd.Series of {{+1, 0, -1}}.")
-    print(f"   The backtesting engine accepts any signal source -- rule-based or ML.")
-    print(f"   Example:")
-    print(f"     class MLStrategy(BaseStrategy):")
-    print(f"         def generate_signals(self, df):")
-    print(f"             predictions = self.model.predict(df[feature_cols])")
-    print(f"             return pd.Series(np.sign(predictions), index=df.index)")
+    print(f"\n{'=' * 80}")
+    print(f"  Portfolio Pipeline Engine completed in {elapsed:.1f}s")
+    print(f"  Multi-Asset Executed on {len(tickers_to_run)} tickers.")
+    if cfg.execution_model.get("use_slippage_model", False):
+        print(f"  Execution Model: ENABLED (ADV cap, spread model, market impact)")
+    else:
+        print(f"  Execution Model: DISABLED (flat-rate costs only)")
+    print(f"{'=' * 80}")
 
 if __name__ == "__main__":
     main()
+

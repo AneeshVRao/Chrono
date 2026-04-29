@@ -10,11 +10,11 @@ import pandas as pd
 import numpy as np
 
 from src.utils.config_loader import Config
-from src.backtesting.engine import BacktestEngine
-from src.backtesting.splitter import WalkForwardSplitter
-from src.backtesting.metrics import MetricsCalculator
-from src.strategies.momentum import MomentumStrategy
-from src.strategies.mean_reversion import MeanReversionStrategy
+from src.core.backtesting.engine import BacktestEngine
+from src.core.backtesting.splitter import WalkForwardSplitter
+from src.core.backtesting.metrics import MetricsCalculator
+from src.core.strategies.momentum import MomentumStrategy
+from src.core.strategies.mean_reversion import MeanReversionStrategy
 
 cfg = Config()
 bt_cfg = cfg.backtesting_params

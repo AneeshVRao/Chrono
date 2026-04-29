@@ -1,4 +1,4 @@
-﻿"""
+"""
 Backtesting engine — simulates trades over time with transaction costs.
 
 Core principle: at time t, the engine only has access to information up to t.
@@ -16,6 +16,7 @@ import numpy as np
 import pandas as pd
 
 from src.core.backtesting.metrics import MetricsCalculator, PerformanceReport
+from src.execution.execution_model import ExecutionModel, ExecutionStats
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -47,6 +48,7 @@ class BacktestResult:
     trades: list[Trade]            # individual trade records
     report: PerformanceReport      # performance metrics
     benchmark_returns: pd.Series   # buy-and-hold returns
+    execution_stats: ExecutionStats | None = None  # execution model diagnostics
 
 
 class BacktestEngine:
@@ -67,18 +69,35 @@ class BacktestEngine:
         initial_capital: float = 100_000.0,
         slippage_bps: float = 5.0,
         commission_bps: float = 5.0,
+        execution_model: ExecutionModel | None = None,
     ) -> None:
         self.initial_capital = initial_capital
         self.cost_rate = (slippage_bps + commission_bps) / 10_000  # total per-trade cost
         self.metrics_calc = MetricsCalculator()
+        self.execution_model = execution_model
 
     @classmethod
-    def from_config(cls, cfg: dict[str, Any]) -> "BacktestEngine":
+    def from_config(cls, cfg: dict[str, Any], exec_cfg: dict[str, Any] | None = None) -> "BacktestEngine":
         tc = cfg.get("transaction_costs", {})
+
+        # Build execution model if config says to use it
+        exec_model = None
+        if exec_cfg and exec_cfg.get("use_slippage_model", False):
+            exec_model = ExecutionModel({
+                "enabled": True,
+                "adv_window": exec_cfg.get("adv_window", 20),
+                "max_adv_participation": exec_cfg.get("max_adv_participation", 0.05),
+                "spread_k": exec_cfg.get("spread_k", 0.15),
+                "vol_window": exec_cfg.get("vol_window", 20),
+                "impact_exponent": exec_cfg.get("impact_exponent", 2.0),
+                "impact_coefficient": exec_cfg.get("impact_coefficient", 1.0),
+            })
+
         return cls(
             initial_capital=cfg.get("initial_capital", 100_000.0),
             slippage_bps=tc.get("slippage_bps", 5.0),
             commission_bps=tc.get("commission_bps", 5.0),
+            execution_model=exec_model,
         )
 
     def run(
@@ -104,11 +123,18 @@ class BacktestEngine:
         logger.info(f"Running backtest: {strategy_name} on {ticker} ({len(df)} bars)")
 
         # Align signals to DataFrame
-        signals = signals.reindex(df.index).fillna(0).astype(int).clip(-1, 1)
+        signals = signals.reindex(df.index).fillna(0).astype(float).clip(-1.0, 1.0)
 
         # -- Position tracking -------------------------------------------------
         # Signal at t -> position change at t+1 (next-bar execution)
-        positions = signals.shift(1).fillna(0).astype(int)
+        positions = signals.shift(1).fillna(0).astype(float)
+
+        # -- Execution model: ADV cap + realistic slippage ---------------------
+        exec_stats = None
+        if self.execution_model is not None and self.execution_model.enabled:
+            positions, exec_costs, exec_stats = self.execution_model.apply(
+                df, positions, self.initial_capital
+            )
 
         # Detect position changes (trades)
         position_changes = positions.diff().fillna(0)
@@ -120,10 +146,16 @@ class BacktestEngine:
         # Strategy return = position * asset return
         strategy_returns = positions * asset_returns
 
-        # Transaction costs: proportional to abs(position change)
-        # Going 0->+1 costs 1x, going +1->-1 costs 2x (close long + open short)
-        trade_costs = position_changes.abs() * self.cost_rate
-        strategy_returns = strategy_returns - trade_costs
+        # Transaction costs
+        if self.execution_model is not None and self.execution_model.enabled:
+            # Use realistic execution costs (spread + impact) instead of flat rate
+            # Commission is still applied as a flat cost on top
+            commission_only = position_changes.abs() * (self.cost_rate / 2)  # half of original = commission portion
+            strategy_returns = strategy_returns - exec_costs - commission_only
+        else:
+            # Legacy flat-rate model: slippage + commission in basis points
+            trade_costs = position_changes.abs() * self.cost_rate
+            strategy_returns = strategy_returns - trade_costs
 
         # -- Equity curve -------------------------------------------------------
         equity = self.initial_capital * (1 + strategy_returns).cumprod()
@@ -143,11 +175,17 @@ class BacktestEngine:
             strategy_returns, strategy_name, ticker, positions=positions
         )
 
-        logger.info(
+        log_msg = (
             f"  Completed: {n_actual_trades} trade entries, "
             f"Sharpe={report.sharpe_ratio:.3f}, "
             f"Return={report.total_return:.2%}"
         )
+        if exec_stats is not None:
+            log_msg += (
+                f" | ADV-capped: {exec_stats.pct_orders_capped:.1%}, "
+                f"Avg slip: {exec_stats.avg_slippage_bps:.1f}bps"
+            )
+        logger.info(log_msg)
 
         return BacktestResult(
             strategy_name=strategy_name,
@@ -159,6 +197,7 @@ class BacktestEngine:
             trades=trades,
             report=report,
             benchmark_returns=benchmark_returns,
+            execution_stats=exec_stats,
         )
 
     def _extract_trades(
@@ -183,7 +222,7 @@ class BacktestEngine:
                 in_trade = True
                 entry_date = date
                 entry_price = price
-                direction = int(pos)
+                direction = pos
 
             elif in_trade and (pos == 0 or pos != direction):
                 # Close trade
@@ -210,7 +249,7 @@ class BacktestEngine:
                     in_trade = True
                     entry_date = date
                     entry_price = price
-                    direction = int(pos)
+                    direction = pos
                 else:
                     in_trade = False
 

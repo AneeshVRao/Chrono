@@ -67,6 +67,17 @@ features:
     windows: [5, 10, 20, 63]
     metrics: ["mean", "std", "skew"]     # rolling statistics on returns
 
+  macro:
+    tickers:
+      DXY: "DX-Y.NYB"                     # US Dollar Index
+      TLT: "TLT"                           # 20+ Year Treasury Bond ETF
+      VIX: "^VIX"                          # CBOE Volatility Index
+      GLD: "GLD"                           # Gold ETF
+    return_periods: [1, 5, 10]             # daily return lookback periods
+    vol_window: 20                         # rolling volatility window
+    zscore_window: 60                      # rolling z-score normalization window
+    trend_ma_window: 20                    # trend MA window (price / MA)
+
   target:
     forward_return_period: 1             # predict 1-day forward return
     classification_threshold: 0.0        # >0 = 1, <=0 = 0
@@ -86,6 +97,17 @@ backtesting:
 
   initial_capital: 100000.0              # starting portfolio value
 
+# --- Portfolio Allocation -----------------------------------
+portfolio:
+  allocation_type: "cvar"                  # equal_weight | risk_parity | cvar
+  cvar:
+    alpha: 0.95                            # CVaR confidence level (95% = 5% tail)
+    lookback: 60                           # trailing days of returns for optimisation
+    min_weight: 0.0                        # per-asset floor  (0 = no shorting)
+    max_weight: 0.40                       # per-asset cap    (prevents over-concentration)
+    rebalance_freq: 20                     # re-optimise every N trading days
+    min_history: 30                        # minimum observations required
+
   strategies:
     momentum:
       lookback_period: 21                # days of past returns to consider
@@ -99,8 +121,49 @@ backtesting:
       sma_entry_threshold: -0.03        # buy if price 3% below SMA
       sma_exit_threshold: 0.02          # sell if price 2% above SMA
 
+# --- Execution Model -----------------------------------
+execution_model:
+  use_slippage_model: true                # master toggle: true = realistic execution costs
+  adv_window: 20                          # rolling window for Average Dollar Volume
+  max_adv_participation: 0.05             # cap order to 5% of ADV
+  spread_k: 0.15                          # spread = k * volatility * price (0.1-0.3)
+  vol_window: 20                          # rolling vol window for spread/impact
+  impact_exponent: 2.0                    # non-linear impact: (order/ADV)^exp
+  impact_coefficient: 1.0                 # scalar on impact cost
+
 # --- ML Pipeline ---------------------------------------
 ml_pipeline:
   walk_forward:
     train_window_days: 252               # approximately 1 year of trading days
     test_window_days: 20                 # approximately 1 month of trading days
+
+  # Bayesian Hyperparameter Optimisation (Optuna)
+  optuna:
+    use_optuna: true                     # master toggle: true = tune XGB/LGBM per fold
+    n_trials: 30                         # Optuna trials per model per fold
+    cv_splits: 3                         # TimeSeriesSplit folds inside each train window
+    timeout_seconds: 120                 # max seconds per model tune (null = no limit)
+    random_seed: 42                      # deterministic sampler seed
+    # Search spaces: override defaults if needed (optional)
+    # xgboost_space:
+    #   max_depth:     { low: 2, high: 8 }
+    #   learning_rate: { low: 0.005, high: 0.3 }
+    #   n_estimators:  { low: 50, high: 500 }
+    #   subsample:     { low: 0.5, high: 1.0 }
+    # lightgbm_space:
+    #   max_depth:     { low: 2, high: 8 }
+    #   learning_rate: { low: 0.005, high: 0.3 }
+    #   n_estimators:  { low: 50, high: 500 }
+    #   subsample:     { low: 0.5, high: 1.0 }
+
+  meta_model:
+    enabled: true                        # master toggle for meta-model
+    primary_model: "Ensemble"            # which primary model to gate
+    accuracy_window: 20                  # rolling window for primary model accuracy
+    sharpe_window: 20                    # rolling window for strategy Sharpe
+    stability_window: 10                 # rolling window for prediction variance
+    vol_window: 20                       # volatility lookup window
+    profit_threshold: 0.0                # trade outcome > this = label 1
+    min_train_samples: 50                # minimum samples to fit meta-model
+    confidence_threshold: 0.50           # meta-model's own gate (unused for LR baseline)
+

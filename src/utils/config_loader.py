@@ -82,6 +82,10 @@ class Config:
         return self._cfg.get("ml_pipeline", {})
 
     @property
+    def execution_model(self) -> dict[str, Any]:
+        return self._cfg.get("execution_model", {})
+
+    @property
     def log_level(self) -> str:
         return self._cfg["project"]["log_level"]
 

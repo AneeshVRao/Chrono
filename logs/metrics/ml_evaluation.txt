@@ -4,41 +4,56 @@
 ============================================================
 
 Model: LogisticRegression
-  Accuracy:  0.5176
-  Precision: 0.5389
-  Recall:    0.6272
-  F1 Score:  0.5797
-  ROC-AUC:   0.5154
+  Accuracy:  0.7368
+  Precision: 0.7778
+  Recall:    0.7000
+  F1 Score:  0.7368
+  ROC-AUC:   0.8000
+  Sharpe:    2.888
   Confusion Matrix:
-    [ 3202 | 4931 ] (True Neg | False Pos)
-    [ 3425 | 5762 ] (False Neg | True Pos)
+    [    7 |    2 ] (True Neg | False Pos)
+    [    3 |    7 ] (False Neg | True Pos)
 
 Model: RandomForest
-  Accuracy:  0.5186
-  Precision: 0.5347
-  Recall:    0.7127
-  F1 Score:  0.6110
-  ROC-AUC:   0.5056
+  Accuracy:  0.7368
+  Precision: 0.7273
+  Recall:    0.8000
+  F1 Score:  0.7619
+  ROC-AUC:   0.7667
+  Sharpe:    6.967
   Confusion Matrix:
-    [ 2435 | 5698 ] (True Neg | False Pos)
-    [ 2639 | 6548 ] (False Neg | True Pos)
+    [    6 |    3 ] (True Neg | False Pos)
+    [    2 |    8 ] (False Neg | True Pos)
 
 Model: XGBoost
-  Accuracy:  0.5161
-  Precision: 0.5339
-  Recall:    0.6908
-  F1 Score:  0.6023
-  ROC-AUC:   0.5027
+  Accuracy:  0.6842
+  Precision: 0.7500
+  Recall:    0.6000
+  F1 Score:  0.6667
+  ROC-AUC:   0.7111
+  Sharpe:    6.652
   Confusion Matrix:
-    [ 2593 | 5540 ] (True Neg | False Pos)
-    [ 2841 | 6346 ] (False Neg | True Pos)
+    [    7 |    2 ] (True Neg | False Pos)
+    [    4 |    6 ] (False Neg | True Pos)
+
+Model: LightGBM
+  Accuracy:  0.7368
+  Precision: 0.7273
+  Recall:    0.8000
+  F1 Score:  0.7619
+  ROC-AUC:   0.7278
+  Sharpe:    6.967
+  Confusion Matrix:
+    [    6 |    3 ] (True Neg | False Pos)
+    [    2 |    8 ] (False Neg | True Pos)
 
 Model: Ensemble
-  Accuracy:  0.5208
-  Precision: 0.5378
-  Recall:    0.6866
-  F1 Score:  0.6032
-  ROC-AUC:   0.5113
+  Accuracy:  0.6842
+  Precision: 0.7500
+  Recall:    0.6000
+  F1 Score:  0.6667
+  ROC-AUC:   0.8222
+  Sharpe:    6.652
   Confusion Matrix:
-    [ 2712 | 5421 ] (True Neg | False Pos)
-    [ 2879 | 6308 ] (False Neg | True Pos)
+    [    7 |    2 ] (True Neg | False Pos)
+    [    4 |    6 ] (False Neg | True Pos)
