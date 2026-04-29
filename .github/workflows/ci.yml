@@ -27,4 +27,4 @@ jobs:
         
     - name: Run tests
       run: |
-        python -m pytest tests/ -v --cov=src --cov-report=term-missing
+        python -m pytest tests/unit tests/integration -v --cov=src --cov-report=term-missing
