@@ -29,6 +29,7 @@ from src.risk.risk_manager import RiskManager
 from src.execution.alpaca_executor import AlpacaExecutor
 from src.data.fetcher import DataFetcher
 from src.features.feature_builder import FeatureBuilder
+from src.utils.notifier import Notifier
 
 logging.basicConfig(
     level=logging.INFO,
@@ -108,6 +109,7 @@ def run_trading_cycle(
     executor: AlpacaExecutor,
     cfg: Config,
     serializer: ModelSerializer,
+    notifier: Notifier,
 ):
     """Execute a single day's trading logic using the real pipeline."""
     logger.info("=" * 60)
@@ -145,6 +147,14 @@ def run_trading_cycle(
     final_positions = executor.get_live_positions()
     logger.info(f"  Updated positions: {final_positions}")
     logger.info("=" * 60)
+    
+    # 6. Send Alert
+    summary = (
+        f"**Equity**: ${equity:,.2f}\n"
+        f"**Target Allocation**: {target_weights}\n"
+        f"**Final Positions**: {final_positions}"
+    )
+    notifier.send_message("📊 Daily Trading Cycle Complete", summary, "success")
 
 
 def main():
@@ -175,6 +185,10 @@ def main():
 
     # Model serializer for loading trained models
     serializer = ModelSerializer(output_dir="logs/models")
+    
+    # Webhook notifier
+    notifier = Notifier()
+    notifier.send_message("🚀 Daemon Started", "Chrono Quant Paper Trading Daemon initialized.", "info")
 
     # Run for 30 days
     days_to_run = 30
@@ -186,12 +200,13 @@ def main():
         try:
             clock = executor.api.get_clock()
             if clock.is_open:
-                run_trading_cycle(executor, cfg, serializer)
+                run_trading_cycle(executor, cfg, serializer, notifier)
             else:
                 next_open = clock.next_open
                 logger.info(f"  Market closed. Next open: {next_open}")
         except Exception as e:
             logger.error(f"  Error in trading cycle: {e}", exc_info=True)
+            notifier.send_message("❌ Trading Cycle Error", str(e), "error")
 
         days_elapsed += 1
 
