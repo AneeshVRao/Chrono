@@ -68,6 +68,10 @@ class CVaROptimizer:
         max_weight: float = 0.40,
         rebalance_freq: int = 20,
         min_history: int = 30,
+        regime_aware: bool = False,
+        high_vol_alpha: float = 0.99,
+        high_vol_max_weight: float = 0.20,
+        high_vol_rebalance_freq: int = 5,
     ) -> None:
         self.alpha = alpha
         self.lookback = lookback
@@ -75,6 +79,10 @@ class CVaROptimizer:
         self.max_weight = max_weight
         self.rebalance_freq = rebalance_freq
         self.min_history = min_history
+        self.regime_aware = regime_aware
+        self.high_vol_alpha = high_vol_alpha
+        self.high_vol_max_weight = high_vol_max_weight
+        self.high_vol_rebalance_freq = high_vol_rebalance_freq
 
     # ── core objective ──────────────────────────────────────────────────────
     @staticmethod
@@ -101,7 +109,12 @@ class CVaROptimizer:
         return cvar
 
     # ── single-shot optimisation ────────────────────────────────────────────
-    def optimise(self, returns_matrix: np.ndarray) -> np.ndarray:
+    def optimise(
+        self, 
+        returns_matrix: np.ndarray, 
+        current_alpha: float | None = None, 
+        current_max_weight: float | None = None
+    ) -> np.ndarray:
         """
         Solve for the minimum-CVaR portfolio given a (T, N) returns matrix.
 
@@ -109,13 +122,15 @@ class CVaROptimizer:
         -------
         weights : ndarray of shape (N,)
         """
+        alpha_to_use = current_alpha if current_alpha is not None else self.alpha
+        max_weight_to_use = current_max_weight if current_max_weight is not None else self.max_weight
         n_assets = returns_matrix.shape[1]
 
         # Seed with equal-weight
         w0 = np.ones(n_assets) / n_assets
 
         # Bounds per asset
-        bounds = [(self.min_weight, self.max_weight)] * n_assets
+        bounds = [(self.min_weight, max_weight_to_use)] * n_assets
 
         # Full investment constraint
         constraints = [{"type": "eq", "fun": lambda w: np.sum(w) - 1.0}]
@@ -123,7 +138,7 @@ class CVaROptimizer:
         result = minimize(
             self._portfolio_cvar,
             w0,
-            args=(returns_matrix, self.alpha),
+            args=(returns_matrix, alpha_to_use),
             method="SLSQP",
             bounds=bounds,
             constraints=constraints,
@@ -168,8 +183,35 @@ class CVaROptimizer:
 
         last_w = equal_w.copy()
         bars_since_rebalance = self.rebalance_freq  # force optimisation on first bar
+        
+        # Calculate market regime if enabled
+        if self.regime_aware:
+            market_ret = returns_df.mean(axis=1)
+            market_vol = market_ret.rolling(21, min_periods=5).std() * np.sqrt(252)
+            vol_75th = market_vol.rolling(252, min_periods=60).quantile(0.75).bfill()
+            high_vol_regime = (market_vol > vol_75th).fillna(False)
+        else:
+            high_vol_regime = pd.Series(False, index=returns_df.index)
+
+        last_regime = False
 
         for dt in index:
+            # Resolve active parameters based on regime
+            is_high_vol = high_vol_regime.get(dt, False)
+            if is_high_vol and self.regime_aware:
+                active_alpha = self.high_vol_alpha
+                active_max_weight = self.high_vol_max_weight
+                active_rebalance_freq = self.high_vol_rebalance_freq
+            else:
+                active_alpha = self.alpha
+                active_max_weight = self.max_weight
+                active_rebalance_freq = self.rebalance_freq
+                
+            # Force rebalance if we just entered a high vol regime
+            if is_high_vol and not last_regime:
+                bars_since_rebalance = active_rebalance_freq
+            last_regime = is_high_vol
+
             # Locate trailing window of returns available *up to and including* dt
             loc = returns_df.index.get_loc(dt) if dt in returns_df.index else None
             if loc is None:
@@ -186,13 +228,13 @@ class CVaROptimizer:
 
             bars_since_rebalance += 1
 
-            if window.shape[0] >= self.min_history and bars_since_rebalance >= self.rebalance_freq:
+            if window.shape[0] >= self.min_history and bars_since_rebalance >= active_rebalance_freq:
                 # Drop rows with any NaN
                 valid = ~np.isnan(window).any(axis=1)
                 clean = window[valid]
 
                 if clean.shape[0] >= self.min_history:
-                    last_w = self.optimise(clean)
+                    last_w = self.optimise(clean, active_alpha, active_max_weight)
                     bars_since_rebalance = 0
 
             weights_list.append(last_w)
@@ -345,6 +387,10 @@ class PortfolioManager:
             max_weight=self.cvar_params.get("max_weight", 0.40),
             rebalance_freq=self.cvar_params.get("rebalance_freq", 20),
             min_history=self.cvar_params.get("min_history", 30),
+            regime_aware=self.cvar_params.get("regime_aware", True),
+            high_vol_alpha=self.cvar_params.get("high_vol_alpha", 0.99),
+            high_vol_max_weight=self.cvar_params.get("high_vol_max_weight", 0.20),
+            high_vol_rebalance_freq=self.cvar_params.get("high_vol_rebalance_freq", 5),
         )
 
         weights_df = optimizer.compute_weights(returns_df, df_positions.index)

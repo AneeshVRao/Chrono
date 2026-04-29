@@ -174,7 +174,7 @@ class OptunaTuner:
         n_pruned = len([t for t in self._study.trials if t.state == optuna.trial.TrialState.PRUNED])
         logger.info(
             f"  [Optuna] {model_name}: best AUC={self._study.best_value:.4f} "
-            f"in {len(self._study.trials)} trials ({n_pruned} pruned)  ▸ {self._best_params}"
+            f"in {len(self._study.trials)} trials ({n_pruned} pruned) -> {self._best_params}"
         )
         return self._best_params
 
