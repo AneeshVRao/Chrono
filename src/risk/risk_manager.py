@@ -1,3 +1,4 @@
+# Resolved Findings: Reversal Bug in Trailing Stop-Loss Grouping (High)
 """
 Risk Management Engine.
 Handles volatility targeting, maximum drawdown protection, and stop losses.
@@ -88,9 +89,10 @@ class RiskManager:
             else:
                 atr_proxy = close_price * 0.02
                 
-            # Identify contiguous non-zero position blocks
-            is_active = adj_positions != 0
-            trade_blocks = (is_active != is_active.shift(1)).cumsum()
+            # Identify contiguous position blocks using the sign of the positions
+            # This separates long, short, and flat periods cleanly and avoids direct reversal errors
+            position_signs = np.sign(adj_positions)
+            trade_blocks = (position_signs != position_signs.shift(1)).cumsum()
             
             stop_triggered = pd.Series(False, index=df.index)
             
@@ -123,4 +125,3 @@ class RiskManager:
         adj_positions = np.clip(adj_positions, -1.0, 1.0)
         
         return adj_positions
-

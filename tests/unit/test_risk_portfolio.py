@@ -52,15 +52,25 @@ class TestRiskManager:
         assert (adj >= -1.0).all() and (adj <= 1.0).all()
 
     def test_stop_loss_goes_flat(self):
-        rm = RiskManager({"use_vol_target": False, "use_dd_guard": False,
-                          "use_stop_loss": True, "stop_loss_pct": -0.001})
-        df = _make_df()
+        rm = RiskManager({
+            "use_vol_target": False, 
+            "use_dd_guard": False,
+            "use_trailing_stop": True, 
+            "trailing_stop_atr_multiplier": 1.0
+        })
+        dates = _dates(10)
+        df = pd.DataFrame({
+            "close": [100.0, 101.0, 102.0, 103.0, 104.0, 95.0, 94.0, 93.0, 92.0, 91.0],
+            "volume": [1_000_000] * 10,
+            "log_ret_1d": [0.0, 0.01, 0.01, 0.01, 0.01, -0.09, -0.01, -0.01, -0.01, -0.01]
+        }, index=dates)
         positions = pd.Series(1.0, index=df.index)
-        rets = _returns(len(df))
-        rets.iloc[10:15] = -0.02  # consecutive losses
-        adj = rm.apply_rules(df, positions, rets)
-        # Some positions should be zeroed
-        assert (adj == 0.0).any()
+        asset_returns = df["log_ret_1d"]
+        adj = rm.apply_rules(df, positions, asset_returns)
+        # Should trigger on day 5, and go flat on day 6 (which is index 6)
+        assert adj.iloc[5] == 1.0
+        assert adj.iloc[6] == 0.0
+        assert adj.iloc[7] == 0.0
 
 
 # ── CVaROptimizer ────────────────────────────────────────────────────
