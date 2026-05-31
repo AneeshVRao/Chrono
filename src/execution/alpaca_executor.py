@@ -1,3 +1,4 @@
+# Resolved Findings: Missing API Error Handling in Alpaca Executor (Medium)
 """
 Paper Trading Execution Layer using Alpaca API.
 
@@ -41,23 +42,33 @@ class AlpacaExecutor:
         logger.info("AlpacaExecutor initialised securely in PAPER TRADING mode.")
 
     def get_account_equity(self) -> float:
-        """Returns the current account equity in USD."""
-        account = self.api.get_account()
-        return float(account.equity)
+        """Returns the current account equity in USD. Returns 0.0 on failure."""
+        try:
+            account = self.api.get_account()
+            return float(account.equity)
+        except Exception as e:
+            logger.error(f"Alpaca API Error: Failed to retrieve account equity: {e}")
+            return 0.0
 
-    def get_live_positions(self) -> Dict[str, float]:
-        """Returns a dict of {symbol: qty} for all currently held positions."""
-        positions = self.api.list_positions()
-        return {p.symbol: float(p.qty) for p in positions}
+    def get_live_positions(self) -> Dict[str, float] | None:
+        """Returns a dict of {symbol: qty} for all currently held positions, or None on failure."""
+        try:
+            positions = self.api.list_positions()
+            return {p.symbol: float(p.qty) for p in positions}
+        except Exception as e:
+            logger.error(f"Alpaca API Error: Failed to retrieve live positions: {e}")
+            return None
 
-    def _get_latest_prices(self, symbols: list[str]) -> Dict[str, float]:
-        """Fetch the latest trade price for a list of symbols."""
+    def _get_latest_prices(self, symbols: list[str]) -> Dict[str, float] | None:
+        """Fetch the latest trade price for a list of symbols, or None on failure."""
         if not symbols:
             return {}
-        
-        # We can use get_latest_trades for a list of symbols
-        trades = self.api.get_latest_trades(symbols)
-        return {sym: trade.price for sym, trade in trades.items()}
+        try:
+            trades = self.api.get_latest_trades(symbols)
+            return {sym: trade.price for sym, trade in trades.items()}
+        except Exception as e:
+            logger.error(f"Alpaca API Error: Failed to retrieve latest prices: {e}")
+            return None
 
     def execute_signals(self, target_weights: Dict[str, float], retry_count: int = 3):
         """
@@ -65,7 +76,14 @@ class AlpacaExecutor:
         Includes retry logic and order sizing.
         """
         equity = self.get_account_equity()
+        if equity <= 0.0:
+            logger.error("Aborting trade execution: Account equity is invalid or zero.")
+            return
+
         live_positions = self.get_live_positions()
+        if live_positions is None:
+            logger.error("Aborting trade execution: Could not retrieve live positions securely.")
+            return
         
         # Gather all symbols 
         symbols_to_price = list(set(target_weights.keys()).union(set(live_positions.keys())))
@@ -75,6 +93,9 @@ class AlpacaExecutor:
             return
 
         latest_prices = self._get_latest_prices(symbols_to_price)
+        if latest_prices is None:
+            logger.error("Aborting trade execution: Could not retrieve latest prices securely.")
+            return
         
         target_shares = {}
         for symbol, weight in target_weights.items():
