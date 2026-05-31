@@ -1,3 +1,4 @@
+# Resolved Findings: Broken Mock Config in Smoke Test (High)
 """
 End-to-end pipeline smoke test.
 Validates that the entire system can run from end to end on a tiny dataset.
@@ -6,6 +7,7 @@ Validates that the entire system can run from end to end on a tiny dataset.
 import pytest
 import pandas as pd
 import numpy as np
+from pathlib import Path
 from src.utils.config_loader import Config
 from src.pipeline.pipeline import DataPipeline
 import tempfile
@@ -64,18 +66,15 @@ def mock_config():
                 "project": {"log_level": "INFO"}
             }
             
-            # Since the real Config uses project_root / something, we need to mock properties directly
-            # or just override the properties. We will override the properties since they use _PROJECT_ROOT.
-            
-    # Provide the properties directly
-    @property
-    def project_root(self): return Path(self.tmp_dir)
-    @property
-    def raw_dir(self): return Path(self.tmp_dir) / "raw"
-    @property
-    def processed_dir(self): return Path(self.tmp_dir) / "processed"
-    @property
-    def features_dir(self): return Path(self.tmp_dir) / "features"
+        # Provide the properties directly
+        @property
+        def project_root(self): return Path(self.tmp_dir)
+        @property
+        def raw_dir(self): return Path(self.tmp_dir) / "raw"
+        @property
+        def processed_dir(self): return Path(self.tmp_dir) / "processed"
+        @property
+        def features_dir(self): return Path(self.tmp_dir) / "features"
     
     return MockConfig()
 
@@ -86,14 +85,18 @@ def test_pipeline_smoke(mock_config, monkeypatch):
     def mock_fetch_all(self):
         dates = pd.date_range(self.start, self.end or "2023-06-01", freq="B")
         n = len(dates)
-        df = pd.DataFrame({
-            "open": np.random.randn(n) + 100,
-            "high": np.random.randn(n) + 105,
-            "low": np.random.randn(n) + 95,
-            "close": np.random.randn(n) + 100,
-            "volume": np.random.randint(1000, 10000, n).astype(float)
-        }, index=dates)
-        return {t: df for t in self.tickers}
+        res = {}
+        for t in self.tickers:
+            df = pd.DataFrame({
+                "ticker": t,
+                "open": np.random.randn(n) + 100,
+                "high": np.random.randn(n) + 105,
+                "low": np.random.randn(n) + 95,
+                "close": np.random.randn(n) + 100,
+                "volume": np.random.randint(1000, 10000, n).astype(float)
+            }, index=dates)
+            res[t] = df
+        return res
     
     monkeypatch.setattr(DataFetcher, "fetch_all", mock_fetch_all)
     
