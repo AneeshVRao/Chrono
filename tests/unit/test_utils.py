@@ -1,3 +1,4 @@
+# Resolved Findings: Insecure Deserialization via Joblib (Validation Tests)
 """Unit tests for utility modules: Config, Logger, ModelSerializer."""
 import pytest
 import tempfile
@@ -90,3 +91,15 @@ class TestModelSerializer:
         self.ms.save_model(self._stub_model(), None, [], "B", 1)
         models = self.ms.list_models()
         assert len(models) == 2
+
+    def test_path_traversal_raises_save(self):
+        with pytest.raises(ValueError):
+            self.ms.save_model(self._stub_model(), None, [], "../evil", 1)
+
+    def test_path_traversal_raises_load(self):
+        with pytest.raises(ValueError):
+            self.ms.load_model("nested/evil", 1)
+
+    def test_path_traversal_raises_load_latest(self):
+        with pytest.raises(ValueError):
+            self.ms.load_latest_model("..\\evil")
