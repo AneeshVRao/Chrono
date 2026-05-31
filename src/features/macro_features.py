@@ -38,7 +38,7 @@ DEFAULT_MACRO_TICKERS = {
 class MacroFeatures:
     """
     Fetch macro asset data and compute cross-asset features.
-    
+
     Features per macro asset:
       - Daily returns (1d, 5d, 10d)
       - Rolling volatility (20d)
@@ -48,18 +48,18 @@ class MacroFeatures:
 
     def __init__(self, params: dict[str, Any] | None = None) -> None:
         self.params = params or {}
-        
+
         # Macro tickers — allow override from config
         self.macro_tickers: dict[str, str] = self.params.get(
             "tickers", DEFAULT_MACRO_TICKERS
         )
-        
+
         # Feature parameters
         self.return_periods: list[int] = self.params.get("return_periods", [1, 5, 10])
         self.vol_window: int = self.params.get("vol_window", 20)
         self.zscore_window: int = self.params.get("zscore_window", 60)
         self.trend_ma_window: int = self.params.get("trend_ma_window", 20)
-        
+
         # Cache for fetched macro data (to avoid re-fetching per ticker)
         self._macro_cache: dict[str, pd.Series] | None = None
         self._cache_file = Path("data/raw/macro_cache.joblib")
@@ -144,7 +144,7 @@ class MacroFeatures:
             logger.info(f"Macro data cached to disk: {self._cache_file}")
         except Exception as e:
             logger.warning(f"Failed to write disk cache: {e}")
-            
+
         logger.info(f"Macro data fetched: {len(result)}/{len(self.macro_tickers)} assets")
         return result
 

@@ -1,5 +1,4 @@
 """Unit tests for feature engineering modules."""
-import pytest
 import numpy as np
 import pandas as pd
 from src.features.technical_indicators import TechnicalIndicators
@@ -147,7 +146,7 @@ class TestFeatureBuilder:
             output_dir=tmp_path
         )
         dates = pd.date_range("2023-01-01", periods=3, freq="D")
-        
+
         df_a = pd.DataFrame({
             "ticker": ["A", "A", "A"],
             "open": [100.0, 100.0, 100.0],
@@ -157,7 +156,7 @@ class TestFeatureBuilder:
             "volume": [1000.0, 1000.0, 1000.0],
             "sma_10": [np.nan, 1.0, 2.0]
         }, index=dates)
-        
+
         df_b = pd.DataFrame({
             "ticker": ["B", "B", "B"],
             "open": [100.0, 100.0, 100.0],
@@ -167,13 +166,13 @@ class TestFeatureBuilder:
             "volume": [1000.0, 1000.0, 1000.0],
             "sma_10": [10.0, np.nan, 20.0]
         }, index=dates)
-        
+
         data = {"A": df_a, "B": df_b}
         fb.save_features(data)
-        
+
         combined_path = tmp_path / "all_features.parquet"
         assert combined_path.exists()
-        
+
         combined_df = pd.read_parquet(combined_path)
         df_b_res = combined_df[combined_df["ticker"] == "B"].sort_index()
         assert df_b_res["sma_10"].iloc[1] == 10.0

@@ -9,7 +9,6 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-import numpy as np
 import pandas as pd
 
 from src.utils.logger import get_logger
@@ -69,7 +68,7 @@ class DataCleaner:
     def fill_missing(self, df: pd.DataFrame) -> pd.DataFrame:
         """Fill missing values using configured method (STRICTLY NO BFILL)."""
         if self.fill_method == "ffill":
-            df = df.ffill() 
+            df = df.ffill()
         elif self.fill_method == "interpolate":
             # Restrict time-based interpolation to limit_direction='forward' to prevent future data leakage.
             # In time series, bidirectional filling leaks future information to past data.

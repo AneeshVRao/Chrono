@@ -15,7 +15,6 @@ from typing import Any
 
 import pandas as pd
 import numpy as np
-from scipy.optimize import minimize
 
 from src.utils.logger import get_logger
 
@@ -111,9 +110,9 @@ class CVaROptimizer:
 
     # ── single-shot optimisation ────────────────────────────────────────────
     def optimise(
-        self, 
-        returns_matrix: np.ndarray, 
-        current_alpha: float | None = None, 
+        self,
+        returns_matrix: np.ndarray,
+        current_alpha: float | None = None,
         current_max_weight: float | None = None
     ) -> np.ndarray:
         """
@@ -128,7 +127,7 @@ class CVaROptimizer:
 
         alpha_to_use = current_alpha if current_alpha is not None else self.alpha
         max_weight_to_use = current_max_weight if current_max_weight is not None else self.max_weight
-        
+
         T, N = returns_matrix.shape
         w0 = np.ones(N) / N
 
@@ -210,7 +209,7 @@ class CVaROptimizer:
 
         last_w = equal_w.copy()
         bars_since_rebalance = self.rebalance_freq  # force optimisation on first bar
-        
+
         # Calculate market regime if enabled
         if self.regime_aware:
             market_ret = returns_df.mean(axis=1)
@@ -233,7 +232,7 @@ class CVaROptimizer:
                 active_alpha = self.alpha
                 active_max_weight = self.max_weight
                 active_rebalance_freq = self.rebalance_freq
-                
+
             # Force rebalance if we just entered a high vol regime
             if is_high_vol and not last_regime:
                 bars_since_rebalance = active_rebalance_freq
@@ -309,7 +308,7 @@ class PortfolioManager:
 
         elif self.allocation_type == "cvar":
             return self._cvar_allocation(df_positions)
-            
+
         elif self.allocation_type == "cross_sectional":
             return self._cross_sectional_allocation(df_positions)
 
@@ -360,12 +359,12 @@ class PortfolioManager:
         positions = df_positions.values
         n_rows, n_cols = positions.shape
         allocated_weights = np.zeros_like(positions)
-        
+
         for i in range(n_rows):
             row = positions[i]
             active_mask = row > 0
             n_active = np.sum(active_mask)
-            
+
             if n_active == 0:
                 continue
             elif n_active < 3:
@@ -377,7 +376,7 @@ class PortfolioManager:
                 partition_idx = np.argpartition(active_vals, -k)[-k:]
                 top_indices = active_indices[partition_idx]
                 allocated_weights[i, top_indices] = 1.0 / k
-                
+
         return pd.DataFrame(allocated_weights, index=df_positions.index, columns=df_positions.columns)
 
     # ── CVaR Allocation ─────────────────────────────────────────────────────

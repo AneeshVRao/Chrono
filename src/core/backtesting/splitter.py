@@ -1,4 +1,4 @@
-﻿"""
+"""
 Walk-forward time-series splitter.
 Implements expanding/rolling window train-test splits that respect temporal order.
 NEVER shuffles data. Maintains a configurable gap between train and test.

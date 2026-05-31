@@ -14,7 +14,6 @@ Search space:      max_depth, learning_rate, n_estimators, subsample
 from __future__ import annotations
 
 import json
-import logging
 import warnings
 from datetime import datetime
 from pathlib import Path
@@ -23,7 +22,6 @@ from typing import Any, Literal
 from src.utils.logger import get_logger
 
 import numpy as np
-import pandas as pd
 
 try:
     import optuna
@@ -235,7 +233,7 @@ class OptunaTuner:
         y: np.ndarray,
     ):
         """Return an Optuna objective function that uses TimeSeriesSplit CV.
-        
+
         Supports intermediate value reporting for Optuna pruning:
         after each CV fold, the running mean AUC is reported so the
         MedianPruner can kill underperforming trials early.
@@ -286,7 +284,7 @@ class OptunaTuner:
                     fold_auc = 0.5
 
                 aucs.append(fold_auc)
-                
+
                 # Report intermediate value for pruning
                 trial.report(float(np.mean(aucs)), step)
                 if trial.should_prune():
@@ -314,8 +312,8 @@ class OptunaTuner:
     @staticmethod
     def _build_model(model_name: str, params: dict):
         """Instantiate a raw sklearn-API model with given params.
-        
-        Uses early_stopping_rounds to halt training when validation 
+
+        Uses early_stopping_rounds to halt training when validation
         performance plateaus, preventing wasted compute.
         """
         if model_name == "XGBoost":

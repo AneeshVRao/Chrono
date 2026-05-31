@@ -16,21 +16,13 @@ import time
 import os
 import logging
 import signal
-import sys
-from datetime import datetime
 from typing import Dict
-from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
 from src.utils.config_loader import Config
 from src.utils.model_serializer import ModelSerializer
-from src.portfolio.portfolio_manager import PortfolioManager
-from src.risk.risk_manager import RiskManager
 from src.execution.alpaca_executor import AlpacaExecutor
-from src.data.fetcher import DataFetcher
-from src.features.feature_builder import FeatureBuilder
 from src.utils.notifier import Notifier
 
 logging.basicConfig(
@@ -149,7 +141,7 @@ def run_trading_cycle(
     final_positions = executor.get_live_positions()
     logger.info(f"  Updated positions: {final_positions}")
     logger.info("=" * 60)
-    
+
     # 6. Send Alert
     summary = (
         f"**Equity**: ${equity:,.2f}\n"
@@ -187,7 +179,7 @@ def main():
 
     # Model serializer for loading trained models
     serializer = ModelSerializer(output_dir="logs/models")
-    
+
     # Webhook notifier
     notifier = Notifier()
     notifier.send_message("Daemon Started", "Chrono Quant Paper Trading Daemon initialized.", "info")

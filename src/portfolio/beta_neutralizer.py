@@ -3,8 +3,6 @@ Beta Neutralization module.
 Calculates dynamic rolling beta vs SPY and applies portfolio-level hedges.
 """
 
-from typing import Any
-import numpy as np
 import pandas as pd
 from src.utils.logger import get_logger
 
@@ -26,17 +24,17 @@ class BetaNeutralizer:
         """
         # Align series to avoid dimension issues
         df = pd.DataFrame({"asset": asset_returns, "spy": self.spy_returns}).dropna()
-        
+
         # covariance matrix rolling
         cov = df["asset"].rolling(self.window).cov(df["spy"])
         var = df["spy"].rolling(self.window).var()
-        
+
         # beta = cov(asset, spy) / var(spy)
         beta = cov / (var + 1e-10)
-        
+
         # fillna with 1.0 (market beta) or ffill
         return beta.reindex(asset_returns.index).fillna(1.0)
-        
+
     def alpha_decomposition(self, asset_returns: pd.Series, beta: pd.Series) -> pd.DataFrame:
         """
         Decomposes total return into alpha and beta components.
@@ -46,7 +44,7 @@ class BetaNeutralizer:
         aligned_spy = self.spy_returns.reindex(asset_returns.index).fillna(0)
         beta_component = beta * aligned_spy
         alpha = asset_returns - beta_component
-        
+
         return pd.DataFrame({
             "total_return": asset_returns,
             "alpha": alpha,

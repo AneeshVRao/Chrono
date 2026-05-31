@@ -13,7 +13,7 @@ from src.models.base_model import BaseModel
 class RandomForestModel(BaseModel):
     def __init__(self, params: dict | None = None) -> None:
         super().__init__(name="RandomForest", params=params)
-        
+
         model_kwargs = self.params.get("model_kwargs", {"n_estimators": 100, "random_state": 42})
         self.model = RandomForestClassifier(**model_kwargs)
 

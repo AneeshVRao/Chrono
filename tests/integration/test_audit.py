@@ -28,8 +28,6 @@ logging.disable(logging.CRITICAL)
 from src.core.backtesting.engine import BacktestEngine
 from src.core.backtesting.metrics import MetricsCalculator
 from src.core.backtesting.splitter import WalkForwardSplitter
-from src.core.strategies.momentum import MomentumStrategy
-from src.core.strategies.mean_reversion import MeanReversionStrategy
 
 # ═══════════════════════════════════════════════════════════════════
 # Helpers

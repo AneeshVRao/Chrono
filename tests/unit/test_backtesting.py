@@ -1,12 +1,10 @@
 """Unit tests for backtesting engine, metrics, and strategies."""
-import pytest
 import numpy as np
 import pandas as pd
 from src.core.backtesting.engine import BacktestEngine
 from src.core.backtesting.metrics import MetricsCalculator
 from src.core.backtesting.splitter import WalkForwardSplitter
 from src.core.strategies.momentum import MomentumStrategy
-from src.core.strategies.mean_reversion import MeanReversionStrategy
 from src.core.strategies.ml_strategy import MLStrategy
 
 
@@ -76,10 +74,10 @@ class TestBacktestEngine:
         # Signal at t -> execution at t+1
         signals = pd.Series([1, 1, 0, 0, 0, 1, 1, 1, 1, 1], index=dates)
         result = self.engine.run(df, signals, "CompoundingTest", "TEST")
-        
+
         assert len(result.trades) == 2
         trade1, trade2 = result.trades[0], result.trades[1]
-        
+
         expected_shares_no_compounding = self.engine.initial_capital / trade2.entry_price
         # Confirms compounding was applied (shares != static initial capital / price)
         assert abs(trade2.shares - expected_shares_no_compounding) > 1.0

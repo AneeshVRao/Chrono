@@ -3,8 +3,7 @@
 import pytest
 import tempfile
 import pandas as pd
-from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from src.data.fetcher import DataFetcher
 
@@ -41,7 +40,7 @@ class TestDataFetcher:
     def test_save_load_roundtrip(self):
         df = pd.DataFrame({"close": [150.0, 152.0]}, index=pd.date_range("2023-01-01", periods=2))
         self.fetcher.save_raw({"AAPL": df})
-        
+
         loaded = self.fetcher.load_raw("AAPL")
         assert (loaded["close"] == df["close"]).all()
 

@@ -1,6 +1,5 @@
 # Resolved Findings: Lookahead Leakage in Meta-Model Feature Construction (Validation Tests)
 """Unit tests for MetaModel."""
-import pytest
 import numpy as np
 import pandas as pd
 from src.models.meta_model import MetaModel
@@ -41,7 +40,7 @@ class TestMetaModel:
         # Target_direction[29] is known at day 29+5 = 34.
         # So indeed, modifying close at day 40 affects target_direction[35], which is shifted by 5 to index 40.
         # Hence, features at index <= 39 must be completely identical!
-        
+
         df_mod = df.copy()
         # Ensure target_direction[35] flips sign by setting close[40] appropriately relative to close[35]
         idx_35 = df.index[35]

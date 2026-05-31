@@ -5,7 +5,6 @@ Reads config/settings.yaml and exposes typed accessors.
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 from typing import Any
 
@@ -26,7 +25,7 @@ class Config:
 
         with open(path, "r", encoding="utf-8") as f:
             self._cfg: dict[str, Any] = yaml.safe_load(f)
-            
+
         self.validate()
 
     # -- convenience accessors ------------------------------------------
@@ -78,7 +77,7 @@ class Config:
     @property
     def backtesting_params(self) -> dict[str, Any]:
         return self._cfg.get("backtesting", {})
-        
+
     @property
     def ml_pipeline(self) -> dict[str, Any]:
         return self._cfg.get("ml_pipeline", {})
@@ -106,16 +105,16 @@ class Config:
         """Validate configuration settings for correctness."""
         if not self.tickers:
             raise ValueError("Config error: 'data.tickers' list is empty.")
-        
+
         if not self.start_date:
             raise ValueError("Config error: 'data.date_range.start' is missing.")
-            
+
         bt_cfg = self.backtesting_params
         if bt_cfg and "walk_forward" in bt_cfg:
             folds = bt_cfg["walk_forward"].get("n_splits", 0)
             if folds < 2:
                 raise ValueError("Config error: 'backtesting.walk_forward.n_splits' must be at least 2 for walk-forward CV.")
-                
+
         ml_cfg = self.ml_pipeline
         if ml_cfg and "optuna" in ml_cfg:
             optuna_trials = ml_cfg["optuna"].get("n_trials", 0)

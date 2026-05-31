@@ -8,7 +8,6 @@ Usage:
     python scripts/generate_daily_report.py
 """
 
-import os
 from pathlib import Path
 from datetime import datetime
 import pandas as pd
@@ -118,7 +117,7 @@ HTML_TEMPLATE = """
             <h1>Chrono Quant AI</h1>
             <p>Daily Execution Tear Sheet &bull; {date}</p>
         </div>
-        
+
         <div class="content">
             <h2 class="section-title">System Status</h2>
             <div class="grid">
@@ -147,7 +146,7 @@ HTML_TEMPLATE = """
                 </tbody>
             </table>
         </div>
-        
+
         <div class="footer">
             Generated automatically by Chrono Quant Pipeline
         </div>
@@ -160,36 +159,36 @@ HTML_TEMPLATE = """
 def generate_report():
     logger.info("Generating Daily HTML Report...")
     cfg = Config()
-    
+
     date_str = datetime.now().strftime("%B %d, %Y - %H:%M UTC")
-    
+
     # 1. Get Data Version
     version_file = cfg.features_dir / "feature_metadata.json"
     data_version = "Unknown"
     universe_size = len(cfg.tickers)
-    
+
     if version_file.exists():
         import json
         with open(version_file, "r") as f:
             meta = json.load(f)
             data_version = meta.get("version", "Unknown")[:10]
-            
+
     # 2. Get latest signals from features
     signal_rows = ""
     for ticker in cfg.tickers:
         feature_path = cfg.features_dir / f"{ticker}_features.parquet"
         if not feature_path.exists():
             continue
-            
+
         try:
             df = pd.read_parquet(feature_path, engine="pyarrow")
             if df.empty:
                 continue
-                
+
             last_row = df.iloc[-1]
             proba = last_row.get("proba_Ensemble", "N/A")
             meta = last_row.get("meta_pred", 1.0)
-            
+
             if isinstance(proba, float) and not pd.isna(proba):
                 edge = 2.0 * proba - 1.0
                 target = max(0.0, 0.5 * edge) * meta
@@ -197,13 +196,13 @@ def generate_report():
             else:
                 target = 0.0
                 proba_str = "N/A"
-                
+
             meta_status = "Approved" if meta > 0 else "Blocked"
             meta_color = "positive" if meta > 0 else "negative"
-            
+
             target_str = f"{target:.2%}"
             target_color = "positive" if target > 0 else "neutral"
-            
+
             signal_rows += f'''
             <tr>
                 <td><strong>{ticker}</strong></td>
@@ -221,14 +220,14 @@ def generate_report():
         universe_size=universe_size,
         signal_rows=signal_rows
     )
-    
+
     report_dir = Path("logs/reports")
     report_dir.mkdir(parents=True, exist_ok=True)
-    
+
     report_path = report_dir / f"daily_tearsheet_{datetime.now().strftime('%Y%m%d')}.html"
     with open(report_path, "w") as f:
         f.write(html_content)
-        
+
     logger.info(f"Report generated successfully: {report_path}")
 
 

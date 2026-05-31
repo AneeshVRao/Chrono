@@ -65,7 +65,7 @@ def mock_config():
                 "execution_model": {"enabled": False},
                 "project": {"log_level": "INFO"}
             }
-            
+
         # Provide the properties directly
         @property
         def project_root(self): return Path(self.tmp_dir)
@@ -75,7 +75,7 @@ def mock_config():
         def processed_dir(self): return Path(self.tmp_dir) / "processed"
         @property
         def features_dir(self): return Path(self.tmp_dir) / "features"
-    
+
     return MockConfig()
 
 
@@ -97,20 +97,20 @@ def test_pipeline_smoke(mock_config, monkeypatch):
             }, index=dates)
             res[t] = df
         return res
-    
+
     monkeypatch.setattr(DataFetcher, "fetch_all", mock_fetch_all)
-    
+
     from src.features.macro_features import MacroFeatures
     def mock_macro_fetch(self, start, end=None):
         dates = pd.date_range(start, end or "2023-06-01", freq="B")
         return {"GLD": pd.Series(np.random.randn(len(dates)) + 100, index=dates)}
-    
+
     monkeypatch.setattr(MacroFeatures, "fetch_macro_data", mock_macro_fetch)
 
     # Run the pipeline
     pipeline = DataPipeline(mock_config)
     results = pipeline.run()
-    
+
     assert results is not None
     assert "AAPL" in results
     assert not results["AAPL"].empty

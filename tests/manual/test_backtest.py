@@ -7,7 +7,6 @@ import logging
 logging.disable(logging.CRITICAL)  # suppress logs for clean output
 
 import pandas as pd
-import numpy as np
 
 from src.utils.config_loader import Config
 from src.core.backtesting.engine import BacktestEngine

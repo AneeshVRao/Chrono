@@ -10,10 +10,9 @@ Designed so ML model predictions can plug directly into the signal interface.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
-import numpy as np
 import pandas as pd
 
 from src.core.backtesting.metrics import MetricsCalculator, PerformanceReport

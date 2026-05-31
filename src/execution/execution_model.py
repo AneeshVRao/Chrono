@@ -153,7 +153,7 @@ class ExecutionModel:
         adv_values = adv.values
         adv_cap_dollars = self.max_adv_participation * adv
         adv_cap_vals = adv_cap_dollars.values
-        
+
         # Preallocate numpy arrays for performance
         adj_pos_vals = np.zeros(len(positions))
         abs_changes_vals = np.zeros(len(positions))

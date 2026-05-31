@@ -21,7 +21,7 @@ class TestAlpacaExecutor:
         mock_account = MagicMock()
         mock_account.equity = "100000.00"
         self.mock_api.get_account.return_value = mock_account
-        
+
         equity = self.executor.get_account_equity()
         assert equity == 100000.0
         self.mock_api.get_account.assert_called_once()
@@ -39,7 +39,7 @@ class TestAlpacaExecutor:
         pos2.symbol = "MSFT"
         pos2.qty = "-5.0"
         self.mock_api.list_positions.return_value = [pos1, pos2]
-        
+
         positions = self.executor.get_live_positions()
         assert positions == {"AAPL": 10.0, "MSFT": -5.0}
 
@@ -54,7 +54,7 @@ class TestAlpacaExecutor:
         trade2 = MagicMock()
         trade2.price = 250.0
         self.mock_api.get_latest_trades.return_value = {"AAPL": trade1, "MSFT": trade2}
-        
+
         prices = self.executor._get_latest_prices(["AAPL", "MSFT"])
         assert prices == {"AAPL": 150.0, "MSFT": 250.0}
 
@@ -67,7 +67,7 @@ class TestAlpacaExecutor:
         mock_account = MagicMock()
         mock_account.equity = "0.00"
         self.mock_api.get_account.return_value = mock_account
-        
+
         self.executor.execute_signals({"AAPL": 0.5})
         self.mock_api.list_positions.assert_not_called()
 
@@ -76,7 +76,7 @@ class TestAlpacaExecutor:
         mock_account.equity = "100000.00"
         self.mock_api.get_account.return_value = mock_account
         self.mock_api.list_positions.side_effect = Exception("API offline")
-        
+
         self.executor.execute_signals({"AAPL": 0.5})
         self.mock_api.get_latest_trades.assert_not_called()
 
@@ -86,7 +86,7 @@ class TestAlpacaExecutor:
         self.mock_api.get_account.return_value = mock_account
         self.mock_api.list_positions.return_value = []
         self.mock_api.get_latest_trades.side_effect = Exception("Connection lost")
-        
+
         self.executor.execute_signals({"AAPL": 0.5})
         self.mock_api.submit_order.assert_not_called()
 
@@ -94,16 +94,16 @@ class TestAlpacaExecutor:
         mock_account = MagicMock()
         mock_account.equity = "10000.00"
         self.mock_api.get_account.return_value = mock_account
-        
+
         pos1 = MagicMock()
         pos1.symbol = "AAPL"
         pos1.qty = "10.0"
         self.mock_api.list_positions.return_value = [pos1]
-        
+
         trade1 = MagicMock()
         trade1.price = 100.0
         self.mock_api.get_latest_trades.return_value = {"AAPL": trade1}
-        
+
         # Target weight 0.2 means allocation = 2000.0. At price 100.0, target is 20 shares.
         # Current AAPL is 10 shares. Diff = +10. Market order buy 10.
         self.executor.execute_signals({"AAPL": 0.2})

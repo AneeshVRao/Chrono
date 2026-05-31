@@ -1,5 +1,4 @@
 """Unit tests for risk management, portfolio allocation, and execution model."""
-import pytest
 import numpy as np
 import pandas as pd
 from src.risk.risk_manager import RiskManager
@@ -53,9 +52,9 @@ class TestRiskManager:
 
     def test_stop_loss_goes_flat(self):
         rm = RiskManager({
-            "use_vol_target": False, 
+            "use_vol_target": False,
             "use_dd_guard": False,
-            "use_trailing_stop": True, 
+            "use_trailing_stop": True,
             "trailing_stop_atr_multiplier": 1.0
         })
         dates = _dates(10)
@@ -125,7 +124,7 @@ class TestPortfolioManager:
         }
         pm = PortfolioManager(allocation_type="cross_sectional")
         result = pm.allocate(positions)
-        
+
         assert (result.iloc[0] == 0.0).all()
         assert result.loc[dates[1], "A"] == 1.0
         assert result.loc[dates[1], "B"] == 0.0
@@ -203,10 +202,10 @@ class TestExecutionModel:
         df = _make_df(10)
         df["volume"] = 10.0
         df["close"] = 10.0
-        
+
         pos = pd.Series([0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], index=df.index)
         adj, costs, stats = em.apply(df, pos, initial_capital=100_000)
-        
+
         assert adj.iloc[1] < 1.0
         assert adj.iloc[2] < 1.0
         assert adj.iloc[2] > adj.iloc[1]

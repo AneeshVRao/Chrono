@@ -19,10 +19,10 @@ class Notifier:
     Sends real-time execution and risk alerts to a configured Webhook (Slack or Discord).
     Requires WEBHOOK_URL environment variable to be set.
     """
-    
+
     def __init__(self, webhook_url: str | None = None):
         self.webhook_url = webhook_url or os.getenv("WEBHOOK_URL")
-        
+
         # Simple detection if it's Discord to use Slack-compatible payloads or discord native
         self.is_discord = self.webhook_url and "discord.com" in self.webhook_url
 
@@ -42,15 +42,15 @@ class Notifier:
             "error": "#e74c3c"      # Red
         }
         color = colors.get(level, colors["info"])
-        
+
         try:
             if self.is_discord:
                 payload = self._build_discord_payload(title, message, color)
             else:
                 payload = self._build_slack_payload(title, message, color)
-                
+
             response = requests.post(
-                self.webhook_url, 
+                self.webhook_url,
                 data=json.dumps(payload),
                 headers={"Content-Type": "application/json"},
                 timeout=5
@@ -72,7 +72,7 @@ class Notifier:
                 }
             ]
         }
-        
+
     def _build_discord_payload(self, title: str, message: str, color: str) -> dict:
         # Convert hex color to int for Discord
         int_color = int(color.replace("#", ""), 16)

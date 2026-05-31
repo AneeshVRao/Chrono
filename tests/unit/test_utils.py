@@ -2,13 +2,10 @@
 """Unit tests for utility modules: Config, Logger, ModelSerializer."""
 import pytest
 import tempfile
-import numpy as np
-import pandas as pd
 from pathlib import Path
-from unittest.mock import MagicMock
 
 from src.utils.config_loader import Config
-from src.utils.logger import get_logger, setup_logging
+from src.utils.logger import get_logger
 from src.utils.model_serializer import ModelSerializer
 
 
