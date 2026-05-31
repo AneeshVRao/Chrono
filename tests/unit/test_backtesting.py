@@ -63,6 +63,27 @@ class TestBacktestEngine:
         r_costly = eng_costly.run(self.df, signals, "Costly", "T")
         assert r_free.report.total_return >= r_costly.report.total_return
 
+    def test_compounding_trade_sizing(self):
+        dates = pd.date_range("2020-01-01", periods=10, freq="B")
+        df = pd.DataFrame({
+            "open": [100, 110, 120, 130, 140, 150, 160, 170, 180, 190],
+            "high": [105, 115, 125, 135, 145, 155, 165, 175, 185, 195],
+            "low": [95, 105, 115, 125, 135, 145, 155, 165, 175, 185],
+            "close": [100, 110, 120, 130, 140, 150, 160, 170, 180, 190],
+            "volume": [1_000_000] * 10,
+        }, index=dates)
+
+        # Signal at t -> execution at t+1
+        signals = pd.Series([1, 1, 0, 0, 0, 1, 1, 1, 1, 1], index=dates)
+        result = self.engine.run(df, signals, "CompoundingTest", "TEST")
+        
+        assert len(result.trades) == 2
+        trade1, trade2 = result.trades[0], result.trades[1]
+        
+        expected_shares_no_compounding = self.engine.initial_capital / trade2.entry_price
+        # Confirms compounding was applied (shares != static initial capital / price)
+        assert abs(trade2.shares - expected_shares_no_compounding) > 1.0
+
 
 # ── MetricsCalculator ────────────────────────────────────────────────
 
