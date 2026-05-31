@@ -367,6 +367,7 @@ class DataPipeline:
             "profit_threshold": meta_cfg.get("profit_threshold", 0.0),
             "min_train_samples": meta_cfg.get("min_train_samples", 50),
             "confidence_threshold": meta_cfg.get("confidence_threshold", 0.50),
+            "forward_return_period": self.cfg.feature_params.get("target", {}).get("forward_return_period", 5),
         }
         
         # Initialize meta prediction columns

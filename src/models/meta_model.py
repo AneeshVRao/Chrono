@@ -1,3 +1,4 @@
+# Resolved Findings: Lookahead Leakage in Meta-Model Feature Construction (High)
 """
 Meta-Model: Second-layer trade filter.
 
@@ -55,6 +56,7 @@ class MetaModel:
         self.profit_threshold: float = self.params.get("profit_threshold", 0.0)
         self.min_train_samples: int = self.params.get("min_train_samples", 50)
         self.confidence_threshold: float = self.params.get("confidence_threshold", 0.50)
+        self.fwd_period: int = self.params.get("forward_return_period", 5)
 
         # Internal state
         self.model = LogisticRegression(
@@ -81,7 +83,7 @@ class MetaModel:
     ) -> pd.DataFrame:
         """
         Build meta-features for a single ticker DataFrame.
-        All features are computed from PAST data only (via .shift(1) or rolling).
+        All features are computed from PAST data only (via .shift or rolling).
 
         Required columns in df:
           - proba_{model_name}  : primary model confidence
@@ -107,9 +109,9 @@ class MetaModel:
 
         # --- 2. Rolling accuracy of primary model (past only) ---
         if pred_col in df.columns and "target_direction" in df.columns:
-            # Shift target by 1 to ensure we only use KNOWN outcomes
-            known_target = df["target_direction"].shift(1)
-            known_pred = df[pred_col].shift(1)
+            # Shift target by fwd_period to ensure we only use KNOWN outcomes
+            known_target = df["target_direction"].shift(self.fwd_period)
+            known_pred = df[pred_col].shift(self.fwd_period)
             correct = (known_pred == known_target).astype(float)
             # Replace NaN comparisons with NaN
             correct = correct.where(known_target.notna(), np.nan)
@@ -229,10 +231,6 @@ class MetaModel:
 
         meta_target.name = "meta_target"
         return meta_target
-
-    @property
-    def feature_cols(self) -> list[str]:
-        return self._meta_feature_cols
 
     # ──────────────────────────────────────────────────────────
     #  Training & Prediction
