@@ -162,3 +162,17 @@ class TestExecutionModel:
         adj, costs, stats = em.apply(df, pos)
         assert len(adj) == len(df)
         assert len(costs) == len(df)
+
+    def test_capping_propagates_multiple_days(self):
+        em = ExecutionModel({"enabled": True, "max_adv_participation": 0.0001, "adv_window": 1})
+        df = _make_df(10)
+        df["volume"] = 10.0
+        df["close"] = 10.0
+        
+        pos = pd.Series([0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], index=df.index)
+        adj, costs, stats = em.apply(df, pos, initial_capital=100_000)
+        
+        assert adj.iloc[1] < 1.0
+        assert adj.iloc[2] < 1.0
+        assert adj.iloc[2] > adj.iloc[1]
+        assert adj.iloc[2] != 1.0

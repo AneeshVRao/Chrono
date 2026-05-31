@@ -1,3 +1,4 @@
+# Resolved Findings: Position Capping Logic Failure (High)
 """
 Realistic Execution Model — ADV caps, bid-ask spread, and market impact slippage.
 
@@ -147,32 +148,46 @@ class ExecutionModel:
         adv, vol, spread = self.precompute(df)
         close = df["close"]
 
-        # Detect position changes
-        position_changes = positions.diff().fillna(0)
-        abs_changes = position_changes.abs()
-
-        # Identify bars where a trade occurs
-        trade_mask = abs_changes > 1e-10
-
-        adj_positions = positions.copy()
-
         # ── ADV Participation Cap (sequential — position dependencies) ──
-        order_dollars = abs_changes * initial_capital
+        pos_values = positions.values
+        adv_values = adv.values
         adv_cap_dollars = self.max_adv_participation * adv
-        needs_capping = trade_mask & (adv > 0) & (order_dollars > adv_cap_dollars)
+        adv_cap_vals = adv_cap_dollars.values
+        
+        # Preallocate numpy arrays for performance
+        adj_pos_vals = np.zeros(len(positions))
+        abs_changes_vals = np.zeros(len(positions))
+        trade_mask_vals = np.zeros(len(positions), dtype=bool)
 
-        if needs_capping.any():
-            cap_indices = np.where(needs_capping.values)[0]
-            for i in cap_indices:
-                stats.orders_capped_by_adv += 1
-                scale_factor = adv_cap_dollars.iloc[i] / order_dollars.iloc[i]
-                new_change = position_changes.iloc[i] * scale_factor
-                if i > 0:
-                    adj_positions.iloc[i] = adj_positions.iloc[i - 1] + new_change
+        for i in range(len(positions)):
+            prev_pos = adj_pos_vals[i - 1] if i > 0 else 0.0
+            desired_change = pos_values[i] - prev_pos
+            abs_change = abs(desired_change)
+
+            if abs_change > 1e-10:
+                trade_mask_vals[i] = True
+                order_dollars = abs_change * initial_capital
+                adv_cap = adv_cap_vals[i]
+
+                # Apply cap if dollar volume exceeds cap threshold
+                if adv_values[i] > 0 and order_dollars > adv_cap:
+                    stats.orders_capped_by_adv += 1
+                    scale_factor = adv_cap / order_dollars
+                    capped_change = desired_change * scale_factor
+                    adj_pos_vals[i] = prev_pos + capped_change
+                    abs_changes_vals[i] = abs(capped_change)
                 else:
-                    adj_positions.iloc[i] = new_change
-                # Update abs_changes for downstream cost calc
-                abs_changes.iloc[i] = abs(new_change)
+                    adj_pos_vals[i] = pos_values[i]
+                    abs_changes_vals[i] = abs_change
+            else:
+                trade_mask_vals[i] = False
+                adj_pos_vals[i] = prev_pos
+                abs_changes_vals[i] = 0.0
+
+        # Re-assign back to pandas Series for downstream computation
+        adj_positions = pd.Series(adj_pos_vals, index=positions.index)
+        abs_changes = pd.Series(abs_changes_vals, index=positions.index)
+        trade_mask = pd.Series(trade_mask_vals, index=positions.index)
 
         # ── Vectorized cost computation ─────────────────────────────────
         # Recompute order dollars after potential capping adjustments
