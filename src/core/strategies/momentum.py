@@ -1,3 +1,4 @@
+# Resolved Findings: Inefficient Row Loops in Strategies (Medium)
 """
 Momentum strategy — goes long when recent returns are positive.
 
@@ -46,35 +47,34 @@ class MomentumStrategy(BaseStrategy):
         else:
             momentum = df["close"].pct_change(periods=self.lookback)
 
-        signals = pd.Series(0, index=df.index, dtype=int)
+        mom_vals = momentum.values
+        n_bars = len(df)
+        signals_arr = np.zeros(n_bars, dtype=np.int64)
 
-        # Vectorized signal generation
         position = 0
-        for i in range(len(df)):
-            mom = momentum.iloc[i]
+        for i in range(n_bars):
+            mom = mom_vals[i]
 
-            if pd.isna(mom):
-                # Exit any position on NaN data -- don't carry stale positions
+            if np.isnan(mom):
                 position = 0
-                signals.iloc[i] = 0
+                signals_arr[i] = 0
                 continue
 
             if position == 0:
-                # Entry condition
                 if mom > self.entry_thresh:
                     position = 1
                 elif mom < -self.entry_thresh:
                     position = -1
             elif position == 1:
-                # Long exit
                 if mom < self.exit_thresh:
                     position = 0
             elif position == -1:
-                # Short exit
                 if mom > -self.exit_thresh:
                     position = 0
 
-            signals.iloc[i] = position
+            signals_arr[i] = position
+
+        signals = pd.Series(signals_arr, index=df.index, dtype=int)
 
         n_long = (signals == 1).sum()
         n_short = (signals == -1).sum()
