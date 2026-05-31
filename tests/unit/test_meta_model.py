@@ -43,7 +43,14 @@ class TestMetaModel:
         # Hence, features at index <= 39 must be completely identical!
         
         df_mod = df.copy()
-        df_mod.loc[df_mod.index[40], "close"] = df_mod.loc[df_mod.index[40], "close"] * 2.0
+        # Ensure target_direction[35] flips sign by setting close[40] appropriately relative to close[35]
+        idx_35 = df.index[35]
+        idx_40 = df.index[40]
+        if df.loc[idx_35, "target_direction"] == 1.0:
+            df_mod.loc[idx_40, "close"] = df_mod.loc[idx_35, "close"] * 0.5
+        else:
+            df_mod.loc[idx_40, "close"] = df_mod.loc[idx_35, "close"] * 1.5
+
         # Rebuild target_direction for modified df
         fwd_return_mod = df_mod["close"].pct_change(periods=fwd_period).shift(-fwd_period)
         df_mod["target_direction"] = (fwd_return_mod > 0.0).astype(float)
