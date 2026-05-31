@@ -1,3 +1,4 @@
+# Resolved Findings: Non-Smooth CVaR Optimization (Medium), Inefficient Row Iterator in Cross-Sectional Allocation (Medium)
 """
 Portfolio Manager module.
 Handles capital allocation across an array of independent assets/signals.
@@ -117,39 +118,65 @@ class CVaROptimizer:
     ) -> np.ndarray:
         """
         Solve for the minimum-CVaR portfolio given a (T, N) returns matrix.
+        Uses a linear programming formulation for efficiency, stability, and speed.
 
         Returns
         -------
         weights : ndarray of shape (N,)
         """
+        from scipy.optimize import linprog
+
         alpha_to_use = current_alpha if current_alpha is not None else self.alpha
         max_weight_to_use = current_max_weight if current_max_weight is not None else self.max_weight
-        n_assets = returns_matrix.shape[1]
+        
+        T, N = returns_matrix.shape
+        w0 = np.ones(N) / N
 
-        # Seed with equal-weight
-        w0 = np.ones(n_assets) / n_assets
+        # State vector: x = [w (N,), var_threshold (1,), u (T,)]
+        # Objective: minimize var_threshold + (1 / ((1 - alpha) * T)) * sum(u)
+        c = np.zeros(N + 1 + T)
+        c[N] = 1.0
+        c[N + 1:] = 1.0 / ((1.0 - alpha_to_use) * T)
 
-        # Bounds per asset
-        bounds = [(self.min_weight, max_weight_to_use)] * n_assets
+        # Equality constraint: sum(w_i) = 1.0
+        # A_eq has shape (1, N + 1 + T)
+        A_eq = np.zeros((1, N + 1 + T))
+        A_eq[0, :N] = 1.0
+        b_eq = np.array([1.0])
 
-        # Full investment constraint
-        constraints = [{"type": "eq", "fun": lambda w: np.sum(w) - 1.0}]
+        # Inequality constraint: -R_t @ w - var_threshold - u_t <= 0
+        # A_ub has shape (T, N + 1 + T)
+        A_ub = np.zeros((T, N + 1 + T))
+        A_ub[:, :N] = -returns_matrix
+        A_ub[:, N] = -1.0
+        A_ub[:, N + 1:] = -np.eye(T)
+        b_ub = np.zeros(T)
 
-        result = minimize(
-            self._portfolio_cvar,
-            w0,
-            args=(returns_matrix, alpha_to_use),
-            method="SLSQP",
-            bounds=bounds,
-            constraints=constraints,
-            options={"maxiter": 500, "ftol": 1e-10, "disp": False},
+        # Bounds on variables
+        # w_i in [min_weight, max_weight]
+        # var_threshold in [-inf, inf]
+        # u_t in [0, inf]
+        bounds = (
+            [(self.min_weight, max_weight_to_use)] * N +
+            [(None, None)] +
+            [(0.0, None)] * T
         )
 
-        if result.success:
-            return result.x
+        res = linprog(
+            c,
+            A_ub=A_ub,
+            b_ub=b_ub,
+            A_eq=A_eq,
+            b_eq=b_eq,
+            bounds=bounds,
+            method="highs"
+        )
+
+        if res.success:
+            return res.x[:N]
         else:
             logger.warning(
-                f"CVaR optimisation did not converge: {result.message}. "
+                f"CVaR optimization did not converge: {res.message}. "
                 f"Falling back to equal-weight."
             )
             return w0
@@ -330,27 +357,28 @@ class PortfolioManager:
         of the assets with the strongest signals, ignoring weak signals entirely.
         This provides relative strength filtering.
         """
-        allocated = pd.DataFrame(0.0, index=df_positions.index, columns=df_positions.columns)
+        positions = df_positions.values
+        n_rows, n_cols = positions.shape
+        allocated_weights = np.zeros_like(positions)
         
-        for dt, row in df_positions.iterrows():
-            # Consider only positive long signals for ranking
-            active = row[row > 0]
-            if len(active) == 0:
-                continue
-                
-            # If less than 3 assets are active, just equal weight them
-            if len(active) < 3:
-                allocated.loc[dt, active.index] = 1.0 / len(active)
-                continue
-                
-            # Keep top half of active signals
-            k = max(1, len(active) // 2)
-            top_k = active.nlargest(k)
+        for i in range(n_rows):
+            row = positions[i]
+            active_mask = row > 0
+            n_active = np.sum(active_mask)
             
-            # Equal weight among top_k winners
-            allocated.loc[dt, top_k.index] = 1.0 / len(top_k)
-            
-        return allocated
+            if n_active == 0:
+                continue
+            elif n_active < 3:
+                allocated_weights[i, active_mask] = 1.0 / n_active
+            else:
+                active_indices = np.where(active_mask)[0]
+                active_vals = row[active_indices]
+                k = max(1, n_active // 2)
+                partition_idx = np.argpartition(active_vals, -k)[-k:]
+                top_indices = active_indices[partition_idx]
+                allocated_weights[i, top_indices] = 1.0 / k
+                
+        return pd.DataFrame(allocated_weights, index=df_positions.index, columns=df_positions.columns)
 
     # ── CVaR Allocation ─────────────────────────────────────────────────────
     def _cvar_allocation(self, df_positions: pd.DataFrame) -> pd.DataFrame:

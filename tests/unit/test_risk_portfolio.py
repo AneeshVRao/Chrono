@@ -115,6 +115,31 @@ class TestPortfolioManager:
         # Low-vol asset A should get higher weight on average
         assert result["A"].iloc[-1] > result["B"].iloc[-1]
 
+    def test_cross_sectional_allocation_matches(self):
+        dates = _dates(5)
+        positions = {
+            "A": pd.Series([0.0, 1.0, 1.0, 1.0, 1.0], index=dates),
+            "B": pd.Series([0.0, 0.0, 2.0, 2.0, 4.0], index=dates),
+            "C": pd.Series([0.0, 0.0, 0.0, 3.0, 3.0], index=dates),
+            "D": pd.Series([0.0, 0.0, 0.0, 0.0, 2.0], index=dates),
+        }
+        pm = PortfolioManager(allocation_type="cross_sectional")
+        result = pm.allocate(positions)
+        
+        assert (result.iloc[0] == 0.0).all()
+        assert result.loc[dates[1], "A"] == 1.0
+        assert result.loc[dates[1], "B"] == 0.0
+        assert result.loc[dates[2], "A"] == 0.5
+        assert result.loc[dates[2], "B"] == 0.5
+        assert result.loc[dates[2], "C"] == 0.0
+        assert result.loc[dates[3], "C"] == 1.0
+        assert result.loc[dates[3], "A"] == 0.0
+        assert result.loc[dates[3], "B"] == 0.0
+        assert result.loc[dates[4], "B"] == 0.5
+        assert result.loc[dates[4], "C"] == 0.5
+        assert result.loc[dates[4], "A"] == 0.0
+        assert result.loc[dates[4], "D"] == 0.0
+
 
 # ── BetaNeutralizer ──────────────────────────────────────────────────
 
