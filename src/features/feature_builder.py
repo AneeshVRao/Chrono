@@ -1,3 +1,4 @@
+# Resolved Findings: Cross-Ticker Feature Corruption (High)
 """
 Feature pipeline — orchestrates all feature computation for a single ticker.
 Ensures no lookahead bias by:
@@ -225,9 +226,9 @@ class FeatureBuilder:
         if data:
             combined = pd.concat(data.values(), axis=0).sort_index()
             
-            # Forward fill and set default edge cases to 0, ensuring No-NaN downstream
+            # Forward fill grouped by ticker and set default edge cases to 0, ensuring No-NaN downstream
             feature_cols = self.get_feature_columns(combined)
-            combined[feature_cols] = combined[feature_cols].ffill().fillna(0)
+            combined[feature_cols] = combined.groupby("ticker")[feature_cols].ffill().fillna(0)
             
             combined_path = self.output_dir / "all_features.parquet"
             combined.to_parquet(combined_path, engine="pyarrow", index=True)
@@ -239,10 +240,10 @@ class FeatureBuilder:
             # Data versioning metadata
             import json
             import hashlib
-            from datetime import datetime
+            from datetime import datetime, timezone
             
             metadata = {
-                "version": datetime.utcnow().isoformat(),
+                "version": datetime.now(timezone.utc).isoformat(),
                 "num_rows": int(combined.shape[0]),
                 "num_columns": int(combined.shape[1]),
                 "tickers": list(data.keys()),

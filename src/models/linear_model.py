@@ -12,7 +12,7 @@ from src.models.base_model import BaseModel
 class LogisticRegressionModel(BaseModel):
     def __init__(self, params: dict | None = None) -> None:
         super().__init__(name="LogisticRegression", params=params)
-        
+
         # Extract scikit-learn kwargs
         model_kwargs = self.params.get("model_kwargs", {"max_iter": 1000, "random_state": 42})
         self.model = LogisticRegression(**model_kwargs)

@@ -1,3 +1,4 @@
+# Resolved Findings: Incorrect Trade Sizing (High), Slow Row Iteration (Medium)
 """
 Backtesting engine — simulates trades over time with transaction costs.
 
@@ -9,10 +10,9 @@ Designed so ML model predictions can plug directly into the signal interface.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
-import numpy as np
 import pandas as pd
 
 from src.core.backtesting.metrics import MetricsCalculator, PerformanceReport
@@ -161,7 +161,7 @@ class BacktestEngine:
         equity = self.initial_capital * (1 + strategy_returns).cumprod()
 
         # -- Trade extraction ---------------------------------------------------
-        trades = self._extract_trades(df, positions, strategy_returns)
+        trades = self._extract_trades(df, positions, strategy_returns, equity=equity)
 
         # Count actual position entries for logging
         entries = (position_changes != 0) & (positions != 0)
@@ -201,21 +201,28 @@ class BacktestEngine:
         )
 
     def _extract_trades(
-        self, df: pd.DataFrame, positions: pd.Series, returns: pd.Series
+        self, df: pd.DataFrame, positions: pd.Series, returns: pd.Series, equity: pd.Series | None = None
     ) -> list[Trade]:
         """Extract individual trade records from position series."""
         trades: list[Trade] = []
         prices = df["close"]
+
+        if equity is None:
+            equity = self.initial_capital * (1 + returns).cumprod()
 
         in_trade = False
         entry_date = None
         entry_price = 0.0
         direction = 0
 
+        pos_values = positions.values
+        pos_dates = positions.index
+        price_values = prices.values
+
         for i in range(len(positions)):
-            pos = positions.iloc[i]
-            date = positions.index[i]
-            price = prices.iloc[i]
+            pos = pos_values[i]
+            date = pos_dates[i]
+            price = price_values[i]
 
             if not in_trade and pos != 0:
                 # Open new trade
@@ -227,7 +234,8 @@ class BacktestEngine:
             elif in_trade and (pos == 0 or pos != direction):
                 # Close trade
                 exit_price = price
-                shares = self.initial_capital / (entry_price + 1e-10)
+                entry_equity = equity.loc[entry_date] if entry_date in equity.index else self.initial_capital
+                shares = entry_equity / (entry_price + 1e-10)
                 raw_return = direction * (exit_price / entry_price - 1)
                 cost = 2 * self.cost_rate  # entry + exit
                 pnl = shares * entry_price * (raw_return - cost)
@@ -255,8 +263,9 @@ class BacktestEngine:
 
         # Close any open trade at end
         if in_trade:
-            exit_price = prices.iloc[-1]
-            shares = self.initial_capital / (entry_price + 1e-10)
+            exit_price = price_values[-1]
+            entry_equity = equity.loc[entry_date] if entry_date in equity.index else self.initial_capital
+            shares = entry_equity / (entry_price + 1e-10)
             raw_return = direction * (exit_price / entry_price - 1)
             cost = 2 * self.cost_rate
             trades.append(Trade(

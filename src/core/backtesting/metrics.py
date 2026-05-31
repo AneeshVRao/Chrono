@@ -1,4 +1,4 @@
-﻿"""
+"""
 Performance metrics for backtesting.
 All metrics are computed from return series — never from raw prices.
 """

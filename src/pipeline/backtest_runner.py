@@ -6,17 +6,14 @@ Coordinates: load features -> generate signals -> run engine -> report.
 from __future__ import annotations
 
 import time
-from pathlib import Path
-from typing import Any
 
-import numpy as np
 import pandas as pd
 
 from src.utils.config_loader import Config
 from src.utils.logger import get_logger
 from src.core.backtesting.engine import BacktestEngine, BacktestResult
 from src.core.backtesting.splitter import WalkForwardSplitter
-from src.core.backtesting.metrics import MetricsCalculator, PerformanceReport
+from src.core.backtesting.metrics import PerformanceReport
 from src.core.strategies.momentum import MomentumStrategy
 from src.core.strategies.mean_reversion import MeanReversionStrategy
 from src.core.strategies.ml_strategy import MLStrategy
@@ -107,7 +104,7 @@ class BacktestRunner:
         self.logger.info("=" * 70)
 
         t0 = time.time()
-        
+
         # Fetch SPY for Beta Neutralization
         self.logger.info("Fetching SPY for Beta Neutralization...")
         spy_fetcher = DataFetcher(tickers=["SPY"], start=self.cfg.start_date, end=self.cfg.end_date, interval=self.cfg.interval, output_dir=self.cfg.raw_dir)
@@ -117,7 +114,7 @@ class BacktestRunner:
         except Exception as e:
             self.logger.warning(f"Failed to fetch SPY: {e}")
             spy_returns = pd.Series(dtype=float)
-            
+
         beta_neutralizer = BetaNeutralizer(spy_returns, window=60) if not spy_returns.empty else None
 
         # Load all ticker dataframes securely
@@ -127,21 +124,21 @@ class BacktestRunner:
                 dfs[ticker] = self.load_features(ticker)
             except FileNotFoundError:
                 self.logger.warning(f"Features missing for {ticker}, skipping.")
-                
+
         if not dfs:
             self.logger.error("No valid ticker data frames located.")
             return [], []
 
         # Pre-compute returns for all assets to feed Risk Parity volatility scaling
         returns_dict = {t: df["close"].pct_change().fillna(0) for t, df in dfs.items()}
-        
+
         # Pre-compute betas for all assets if neutralizer is available
         asset_betas_dict = {}
         if beta_neutralizer:
             for t, ret in returns_dict.items():
                 asset_betas_dict[t] = beta_neutralizer.compute_asset_beta(ret)
         asset_betas_df = pd.DataFrame(asset_betas_dict) if asset_betas_dict else None
-        
+
         # Initialize engines — portfolio allocation (CVaR by default, configurable)
         portfolio_cfg = self.cfg.get("portfolio", {})
         allocation_type = portfolio_cfg.get("allocation_type", "cvar")
@@ -161,7 +158,7 @@ class BacktestRunner:
             self.logger.info(f">> Executing {strategy.name} Portfolio...")
             raw_signals = {}
             risk_adj_signals = {}
-            
+
             # Step 1 & 2: Generate raw signals and apply per-asset Risk Rules
             for ticker, df in dfs.items():
                 raw = strategy.generate_signals(df)
@@ -169,23 +166,23 @@ class BacktestRunner:
                 risk_adj = risk_manager.apply_rules(df, raw, returns)
                 raw_signals[ticker] = raw
                 risk_adj_signals[ticker] = risk_adj
-                
+
             # Step 3: Portfolio Allocation Weights
             weights_df = portfolio_manager.allocate(risk_adj_signals)
-            
+
             # Step 4: Backtest executions per weight
             strategy_daily_returns = None
-            
+
             for ticker, df in dfs.items():
                 alloc_signal = weights_df[ticker]
                 result = self.engine.run(df, alloc_signal, strategy.name, ticker)
-                
+
                 # Combine returns globally
                 if strategy_daily_returns is None:
                     strategy_daily_returns = result.daily_returns.copy()
                 else:
                     strategy_daily_returns += result.daily_returns
-                    
+
             # Compute Master Portfolio Metrics
             if strategy_daily_returns is not None:
                 pf_report = self.engine.metrics_calc.compute(
@@ -193,31 +190,31 @@ class BacktestRunner:
                 )
                 all_reports.append(pf_report)
                 self.logger.info(f"   [{strategy.name} PORTFOLIO] Return: {pf_report.total_return:.2%} | Sharpe: {pf_report.sharpe_ratio:.3f} | MaxDD: {pf_report.max_drawdown:.2%}")
-                
+
                 # Beta Neutralization & Alpha Decomposition
                 if beta_neutralizer and asset_betas_df is not None:
                     hedge_position = beta_neutralizer.apply_hedge(weights_df, asset_betas_df)
-                    
+
                     # Align SPY returns and apply hedge position (signal at t executed at t+1)
                     spy_returns_aligned = spy_returns.reindex(strategy_daily_returns.index).fillna(0)
                     hedge_returns = hedge_position.shift(1).fillna(0).reindex(strategy_daily_returns.index).fillna(0) * spy_returns_aligned
-                    
+
                     hedged_returns = strategy_daily_returns + hedge_returns
-                    
+
                     hedged_report = self.engine.metrics_calc.compute(
                         hedged_returns, f"{strategy.name} (Beta-Neutral)", "PORTFOLIO", None
                     )
                     all_reports.append(hedged_report)
-                    
+
                     # Log comparison and alpha contribution
                     pf_beta_series = beta_neutralizer.compute_asset_beta(strategy_daily_returns)
                     pf_beta = pf_beta_series.mean()
-                    
+
                     unhedged_decomp = beta_neutralizer.alpha_decomposition(strategy_daily_returns, pf_beta_series)
                     alpha_sum = unhedged_decomp['alpha'].sum()
                     total_sum = unhedged_decomp['total_return'].sum()
                     alpha_contrib_pct = (alpha_sum / total_sum) * 100 if total_sum != 0 else 0
-                    
+
                     self.logger.info(f"   [BETA NEUTRALIZATION] {strategy.name}")
                     self.logger.info(f"      Hedged Return: {hedged_report.total_return:.2%} | Hedged Sharpe: {hedged_report.sharpe_ratio:.3f}")
                     self.logger.info(f"      Validation -> Initial Sharpe: {pf_report.sharpe_ratio:.3f} vs Hedged Sharpe: {hedged_report.sharpe_ratio:.3f}")
@@ -232,7 +229,7 @@ class BacktestRunner:
             alloc_sig = b_weights[ticker]
             b_res = self.engine.run(df, alloc_sig, "Buy & Hold", ticker)
             bench_daily_returns = b_res.daily_returns.copy() if bench_daily_returns is None else bench_daily_returns + b_res.daily_returns
-            
+
         if bench_daily_returns is not None:
             bench_report = self.engine.metrics_calc.compute(
                 bench_daily_returns, "Buy & Hold", "PORTFOLIO", None

@@ -27,7 +27,7 @@ def parse_args():
 def main():
     args = parse_args()
     cfg = Config(args.config)
-    
+
     print("Loading data via pipeline...")
     pipeline = DataPipeline(cfg)
     # We just run fetch -> clean -> features and grab the builder
@@ -37,19 +37,19 @@ def main():
          return
     cleaned = pipeline._clean(raw_data)
     featured_data = pipeline._build_features(cleaned)
-    
+
     # Combine data for global SHAP analysis
     combined = pd.concat(featured_data.values(), axis=0).sort_index()
     combined = combined.dropna(subset=["target_direction"])
-    
+
     # Sample data to make SHAP analysis faster (e.g. 5000 rows)
     if len(combined) > 5000:
         combined = combined.sample(5000, random_state=42)
-        
+
     feature_cols = pipeline.builder.get_feature_columns(combined)
     X_raw = combined[feature_cols].ffill().fillna(0)
     y = combined["target_direction"].values
-    
+
     scaler = StandardScaler()
     X_scaled_np = scaler.fit_transform(X_raw)
     X = pd.DataFrame(X_scaled_np, columns=feature_cols, index=X_raw.index)
@@ -67,15 +67,15 @@ def main():
     for name, wrapper in models.items():
         print(f"\nEvaluating {name}...")
         wrapper.fit(X, y)
-        
+
         # Use TreeExplainer
         explainer = shap.TreeExplainer(wrapper.model)
-        
+
         # Calculate SHAP values
         print(f"Calculating SHAP values for {name}...")
         # X is already a DataFrame so features names are preserved
         shap_values = explainer(X)
-        
+
         # If output is 3D (multi-class logic) or a list, extract the correct dimension
         if isinstance(shap_values.values, list):
             vals = shap_values.values[1] # usually class 1 for binary classification in tree models
@@ -86,7 +86,7 @@ def main():
         else:
             vals = shap_values.values
             base_values = shap_values.base_values
-            
+
         shap_obj = shap.Explanation(values=vals, base_values=base_values, data=X.values, feature_names=feature_cols)
 
         # Global Feature Importance
@@ -97,14 +97,14 @@ def main():
             "Mean_Abs_SHAP": mean_abs_shap,
             "Model": name
         }).sort_values(by="Mean_Abs_SHAP", ascending=False)
-        
+
         tabular_results.append(global_importance)
 
         # Top 10 important features
         top_10 = global_importance.head(10)
         print(f"\nTop 10 features for {name}:")
         print(top_10.to_string(index=False))
-        
+
         # Useless features (safe for pruning)
         useless_threshold = 1e-4
         useless = global_importance[global_importance["Mean_Abs_SHAP"] < useless_threshold]

@@ -1,3 +1,4 @@
+# Resolved Findings: Insecure Deserialization via Joblib
 """
 Model Serialization — save and load trained models via joblib.
 
@@ -24,6 +25,14 @@ class ModelSerializer:
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
+    def _validate_model_name(self, model_name: str) -> None:
+        """Ensure the model name contains no path traversal elements or directory separators."""
+        clean_name = Path(model_name).name
+        if clean_name != model_name or ".." in model_name or "/" in model_name or "\\" in model_name:
+            raise ValueError(
+                f"Invalid model name: '{model_name}'. Directory traversal or path separators are not allowed."
+            )
+
     def save_model(
         self,
         model: Any,
@@ -37,6 +46,7 @@ class ModelSerializer:
         File naming: {model_name}_fold{fold}.joblib
         Contents: dict with keys 'model', 'scaler', 'feature_cols', 'model_name', 'fold'
         """
+        self._validate_model_name(model_name)
         bundle = {
             "model": model,
             "scaler": scaler,
@@ -56,6 +66,7 @@ class ModelSerializer:
         Returns dict with keys: 'model', 'scaler', 'feature_cols', 'model_name', 'fold'
         Raises FileNotFoundError if the model file doesn't exist.
         """
+        self._validate_model_name(model_name)
         filename = f"{model_name}_fold{fold}.joblib"
         path = self.output_dir / filename
         if not path.exists():
@@ -70,6 +81,7 @@ class ModelSerializer:
         Returns dict with keys: 'model', 'scaler', 'feature_cols', 'model_name', 'fold'
         Raises FileNotFoundError if no models exist for the given name.
         """
+        self._validate_model_name(model_name)
         pattern = f"{model_name}_fold*.joblib"
         files = sorted(self.output_dir.glob(pattern))
         if not files:

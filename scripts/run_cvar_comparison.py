@@ -31,7 +31,7 @@ import pandas as pd
 from src.utils.config_loader import Config
 from src.utils.logger import setup_logging, get_logger
 from src.pipeline.backtest_runner import BacktestRunner
-from src.core.backtesting.metrics import MetricsCalculator, PerformanceReport
+from src.core.backtesting.metrics import PerformanceReport
 
 logger = get_logger("cvar_comparison")
 

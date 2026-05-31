@@ -1,3 +1,4 @@
+# Resolved Findings: Inefficient Row Loops in Strategies (Medium)
 """
 Mean reversion strategy — buys oversold conditions, sells overbought.
 
@@ -57,36 +58,36 @@ class MeanReversionStrategy(BaseStrategy):
             sma = df["close"].rolling(self.sma_window, min_periods=self.sma_window).mean()
             sma_deviation = df["close"] / (sma + 1e-10) - 1.0
 
-        signals = pd.Series(0, index=df.index, dtype=int)
+        rsi_vals = rsi.values
+        dev_vals = sma_deviation.values
+        n_bars = len(df)
+        signals_arr = np.zeros(n_bars, dtype=np.int64)
 
         position = 0
-        for i in range(len(df)):
-            r = rsi.iloc[i]
-            dev = sma_deviation.iloc[i]
+        for i in range(n_bars):
+            r = rsi_vals[i]
+            dev = dev_vals[i]
 
-            if pd.isna(r) or pd.isna(dev):
-                # Exit any position on NaN data — don't carry stale positions
+            if np.isnan(r) or np.isnan(dev):
                 position = 0
-                signals.iloc[i] = 0
+                signals_arr[i] = 0
                 continue
 
             if position == 0:
-                # Entry: oversold + below SMA
                 if r < self.rsi_oversold and dev < self.sma_entry:
-                    position = 1  # long (expect reversion upward)
-                # Entry: overbought + above SMA (short the overextension)
+                    position = 1
                 elif r > self.rsi_overbought and dev > -self.sma_entry:
-                    position = -1  # short (expect reversion downward)
+                    position = -1
             elif position == 1:
-                # Long exit: RSI recovered or price above SMA
                 if r > self.rsi_overbought or dev > self.sma_exit:
                     position = 0
             elif position == -1:
-                # Short exit: RSI dropped or price below SMA
                 if r < self.rsi_oversold or dev < -self.sma_exit:
                     position = 0
 
-            signals.iloc[i] = position
+            signals_arr[i] = position
+
+        signals = pd.Series(signals_arr, index=df.index, dtype=int)
 
         n_long = (signals == 1).sum()
         n_short = (signals == -1).sum()

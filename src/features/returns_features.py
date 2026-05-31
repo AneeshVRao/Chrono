@@ -34,14 +34,14 @@ class ReturnsFeatures:
         """Log returns over N periods: ln(P_t / P_{t-N})."""
         for n in self.log_return_periods:
             df[f"log_ret_{n}d"] = np.log(df["close"] / df["close"].shift(n))
-        
+
         # Lagged 1-day returns
         if "log_ret_1d" not in df.columns:
             df["log_ret_1d"] = np.log(df["close"] / df["close"].shift(1))
-            
+
         for lag in self.lagged_returns:
             df[f"log_ret_1d_lag_{lag}"] = df["log_ret_1d"].shift(lag)
-            
+
         return df
 
     def add_rolling_returns(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -65,11 +65,11 @@ class ReturnsFeatures:
         df["ewm_vol"] = (
             df["log_ret_1d"].ewm(span=self.ewm_span, min_periods=self.ewm_span).std() * np.sqrt(252)
         )
-        
+
         # Volatility ratio (short vs long)
         if "realized_vol_5d" in df.columns and "realized_vol_20d" in df.columns:
             df["vol_ratio_5_20"] = df["realized_vol_5d"] / (df["realized_vol_20d"] + 1e-10)
-            
+
         return df
 
     def add_rolling_statistics(self, df: pd.DataFrame) -> pd.DataFrame:

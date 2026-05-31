@@ -1,3 +1,4 @@
+# Resolved Findings: Non-Smooth CVaR Optimization (Medium), Inefficient Row Iterator in Cross-Sectional Allocation (Medium)
 """
 Portfolio Manager module.
 Handles capital allocation across an array of independent assets/signals.
@@ -14,7 +15,6 @@ from typing import Any
 
 import pandas as pd
 import numpy as np
-from scipy.optimize import minimize
 
 from src.utils.logger import get_logger
 
@@ -68,6 +68,10 @@ class CVaROptimizer:
         max_weight: float = 0.40,
         rebalance_freq: int = 20,
         min_history: int = 30,
+        regime_aware: bool = False,
+        high_vol_alpha: float = 0.99,
+        high_vol_max_weight: float = 0.20,
+        high_vol_rebalance_freq: int = 5,
     ) -> None:
         self.alpha = alpha
         self.lookback = lookback
@@ -75,6 +79,10 @@ class CVaROptimizer:
         self.max_weight = max_weight
         self.rebalance_freq = rebalance_freq
         self.min_history = min_history
+        self.regime_aware = regime_aware
+        self.high_vol_alpha = high_vol_alpha
+        self.high_vol_max_weight = high_vol_max_weight
+        self.high_vol_rebalance_freq = high_vol_rebalance_freq
 
     # ── core objective ──────────────────────────────────────────────────────
     @staticmethod
@@ -101,40 +109,73 @@ class CVaROptimizer:
         return cvar
 
     # ── single-shot optimisation ────────────────────────────────────────────
-    def optimise(self, returns_matrix: np.ndarray) -> np.ndarray:
+    def optimise(
+        self,
+        returns_matrix: np.ndarray,
+        current_alpha: float | None = None,
+        current_max_weight: float | None = None
+    ) -> np.ndarray:
         """
         Solve for the minimum-CVaR portfolio given a (T, N) returns matrix.
+        Uses a linear programming formulation for efficiency, stability, and speed.
 
         Returns
         -------
         weights : ndarray of shape (N,)
         """
-        n_assets = returns_matrix.shape[1]
+        from scipy.optimize import linprog
 
-        # Seed with equal-weight
-        w0 = np.ones(n_assets) / n_assets
+        alpha_to_use = current_alpha if current_alpha is not None else self.alpha
+        max_weight_to_use = current_max_weight if current_max_weight is not None else self.max_weight
 
-        # Bounds per asset
-        bounds = [(self.min_weight, self.max_weight)] * n_assets
+        T, N = returns_matrix.shape
+        w0 = np.ones(N) / N
 
-        # Full investment constraint
-        constraints = [{"type": "eq", "fun": lambda w: np.sum(w) - 1.0}]
+        # State vector: x = [w (N,), var_threshold (1,), u (T,)]
+        # Objective: minimize var_threshold + (1 / ((1 - alpha) * T)) * sum(u)
+        c = np.zeros(N + 1 + T)
+        c[N] = 1.0
+        c[N + 1:] = 1.0 / ((1.0 - alpha_to_use) * T)
 
-        result = minimize(
-            self._portfolio_cvar,
-            w0,
-            args=(returns_matrix, self.alpha),
-            method="SLSQP",
-            bounds=bounds,
-            constraints=constraints,
-            options={"maxiter": 500, "ftol": 1e-10, "disp": False},
+        # Equality constraint: sum(w_i) = 1.0
+        # A_eq has shape (1, N + 1 + T)
+        A_eq = np.zeros((1, N + 1 + T))
+        A_eq[0, :N] = 1.0
+        b_eq = np.array([1.0])
+
+        # Inequality constraint: -R_t @ w - var_threshold - u_t <= 0
+        # A_ub has shape (T, N + 1 + T)
+        A_ub = np.zeros((T, N + 1 + T))
+        A_ub[:, :N] = -returns_matrix
+        A_ub[:, N] = -1.0
+        A_ub[:, N + 1:] = -np.eye(T)
+        b_ub = np.zeros(T)
+
+        # Bounds on variables
+        # w_i in [min_weight, max_weight]
+        # var_threshold in [-inf, inf]
+        # u_t in [0, inf]
+        bounds = (
+            [(self.min_weight, max_weight_to_use)] * N +
+            [(None, None)] +
+            [(0.0, None)] * T
         )
 
-        if result.success:
-            return result.x
+        res = linprog(
+            c,
+            A_ub=A_ub,
+            b_ub=b_ub,
+            A_eq=A_eq,
+            b_eq=b_eq,
+            bounds=bounds,
+            method="highs"
+        )
+
+        if res.success:
+            return res.x[:N]
         else:
             logger.warning(
-                f"CVaR optimisation did not converge: {result.message}. "
+                f"CVaR optimization did not converge: {res.message}. "
                 f"Falling back to equal-weight."
             )
             return w0
@@ -169,7 +210,34 @@ class CVaROptimizer:
         last_w = equal_w.copy()
         bars_since_rebalance = self.rebalance_freq  # force optimisation on first bar
 
+        # Calculate market regime if enabled
+        if self.regime_aware:
+            market_ret = returns_df.mean(axis=1)
+            market_vol = market_ret.rolling(21, min_periods=5).std() * np.sqrt(252)
+            vol_75th = market_vol.rolling(252, min_periods=60).quantile(0.75).bfill()
+            high_vol_regime = (market_vol > vol_75th).fillna(False)
+        else:
+            high_vol_regime = pd.Series(False, index=returns_df.index)
+
+        last_regime = False
+
         for dt in index:
+            # Resolve active parameters based on regime
+            is_high_vol = high_vol_regime.get(dt, False)
+            if is_high_vol and self.regime_aware:
+                active_alpha = self.high_vol_alpha
+                active_max_weight = self.high_vol_max_weight
+                active_rebalance_freq = self.high_vol_rebalance_freq
+            else:
+                active_alpha = self.alpha
+                active_max_weight = self.max_weight
+                active_rebalance_freq = self.rebalance_freq
+
+            # Force rebalance if we just entered a high vol regime
+            if is_high_vol and not last_regime:
+                bars_since_rebalance = active_rebalance_freq
+            last_regime = is_high_vol
+
             # Locate trailing window of returns available *up to and including* dt
             loc = returns_df.index.get_loc(dt) if dt in returns_df.index else None
             if loc is None:
@@ -186,13 +254,13 @@ class CVaROptimizer:
 
             bars_since_rebalance += 1
 
-            if window.shape[0] >= self.min_history and bars_since_rebalance >= self.rebalance_freq:
+            if window.shape[0] >= self.min_history and bars_since_rebalance >= active_rebalance_freq:
                 # Drop rows with any NaN
                 valid = ~np.isnan(window).any(axis=1)
                 clean = window[valid]
 
                 if clean.shape[0] >= self.min_history:
-                    last_w = self.optimise(clean)
+                    last_w = self.optimise(clean, active_alpha, active_max_weight)
                     bars_since_rebalance = 0
 
             weights_list.append(last_w)
@@ -240,7 +308,7 @@ class PortfolioManager:
 
         elif self.allocation_type == "cvar":
             return self._cvar_allocation(df_positions)
-            
+
         elif self.allocation_type == "cross_sectional":
             return self._cross_sectional_allocation(df_positions)
 
@@ -288,27 +356,28 @@ class PortfolioManager:
         of the assets with the strongest signals, ignoring weak signals entirely.
         This provides relative strength filtering.
         """
-        allocated = pd.DataFrame(0.0, index=df_positions.index, columns=df_positions.columns)
-        
-        for dt, row in df_positions.iterrows():
-            # Consider only positive long signals for ranking
-            active = row[row > 0]
-            if len(active) == 0:
+        positions = df_positions.values
+        n_rows, n_cols = positions.shape
+        allocated_weights = np.zeros_like(positions)
+
+        for i in range(n_rows):
+            row = positions[i]
+            active_mask = row > 0
+            n_active = np.sum(active_mask)
+
+            if n_active == 0:
                 continue
-                
-            # If less than 3 assets are active, just equal weight them
-            if len(active) < 3:
-                allocated.loc[dt, active.index] = 1.0 / len(active)
-                continue
-                
-            # Keep top half of active signals
-            k = max(1, len(active) // 2)
-            top_k = active.nlargest(k)
-            
-            # Equal weight among top_k winners
-            allocated.loc[dt, top_k.index] = 1.0 / len(top_k)
-            
-        return allocated
+            elif n_active < 3:
+                allocated_weights[i, active_mask] = 1.0 / n_active
+            else:
+                active_indices = np.where(active_mask)[0]
+                active_vals = row[active_indices]
+                k = max(1, n_active // 2)
+                partition_idx = np.argpartition(active_vals, -k)[-k:]
+                top_indices = active_indices[partition_idx]
+                allocated_weights[i, top_indices] = 1.0 / k
+
+        return pd.DataFrame(allocated_weights, index=df_positions.index, columns=df_positions.columns)
 
     # ── CVaR Allocation ─────────────────────────────────────────────────────
     def _cvar_allocation(self, df_positions: pd.DataFrame) -> pd.DataFrame:
@@ -345,6 +414,10 @@ class PortfolioManager:
             max_weight=self.cvar_params.get("max_weight", 0.40),
             rebalance_freq=self.cvar_params.get("rebalance_freq", 20),
             min_history=self.cvar_params.get("min_history", 30),
+            regime_aware=self.cvar_params.get("regime_aware", True),
+            high_vol_alpha=self.cvar_params.get("high_vol_alpha", 0.99),
+            high_vol_max_weight=self.cvar_params.get("high_vol_max_weight", 0.20),
+            high_vol_rebalance_freq=self.cvar_params.get("high_vol_rebalance_freq", 5),
         )
 
         weights_df = optimizer.compute_weights(returns_df, df_positions.index)

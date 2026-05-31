@@ -107,6 +107,10 @@ portfolio:
     max_weight: 0.40                       # per-asset cap    (prevents over-concentration)
     rebalance_freq: 20                     # re-optimise every N trading days
     min_history: 30                        # minimum observations required
+    regime_aware: true                     # dynamically tighten parameters in high vol
+    high_vol_alpha: 0.99                   # stricter tail confidence during high vol
+    high_vol_max_weight: 0.20              # lower cap to force diversification during high vol
+    high_vol_rebalance_freq: 5             # re-optimise more frequently during high vol
 
   strategies:
     momentum:

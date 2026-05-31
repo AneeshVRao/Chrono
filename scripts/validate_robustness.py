@@ -24,12 +24,8 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score, f1_score, roc_auc_score
-from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
-from sklearn.linear_model import LogisticRegression
 
-from src.utils.config_loader import Config
-from src.utils.logger import setup_logging
 
 
 # ─── Data Loading ───────────────────────────────────────────────
@@ -593,7 +589,7 @@ def main() -> None:
     df = load_all_features()
     feature_cols = get_feature_cols(df)
     print(f"Loaded {len(df)} rows, {len(feature_cols)} features.")
-    
+
     # Count macro features
     macro_cols = [c for c in feature_cols if c.startswith("macro_")]
     print(f"  Macro features detected: {len(macro_cols)}")
@@ -625,7 +621,7 @@ def main() -> None:
         f.write(f"Phase 5 -- Outlier Dependence: {phase5_result['verdict']}\n")
         f.write(f"  Full Sharpe:    {phase5_result['full']:+.3f}\n")
         f.write(f"  No Top5 Sharpe: {phase5_result['no_top5']:+.3f}\n\n")
-        
+
         # Phase 6 -- Feature Importance
         f.write("Phase 6 -- Feature Importance Ranking:\n")
         if not importance_df.empty:

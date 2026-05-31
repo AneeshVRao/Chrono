@@ -15,20 +15,15 @@ Flow:
 import time
 import os
 import logging
-from datetime import datetime
+import signal
 from typing import Dict
-from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
 from src.utils.config_loader import Config
 from src.utils.model_serializer import ModelSerializer
-from src.portfolio.portfolio_manager import PortfolioManager
-from src.risk.risk_manager import RiskManager
 from src.execution.alpaca_executor import AlpacaExecutor
-from src.data.fetcher import DataFetcher
-from src.features.feature_builder import FeatureBuilder
+from src.utils.notifier import Notifier
 
 logging.basicConfig(
     level=logging.INFO,
@@ -108,6 +103,7 @@ def run_trading_cycle(
     executor: AlpacaExecutor,
     cfg: Config,
     serializer: ModelSerializer,
+    notifier: Notifier,
 ):
     """Execute a single day's trading logic using the real pipeline."""
     logger.info("=" * 60)
@@ -146,6 +142,14 @@ def run_trading_cycle(
     logger.info(f"  Updated positions: {final_positions}")
     logger.info("=" * 60)
 
+    # 6. Send Alert
+    summary = (
+        f"**Equity**: ${equity:,.2f}\n"
+        f"**Target Allocation**: {target_weights}\n"
+        f"**Final Positions**: {final_positions}"
+    )
+    notifier.send_message("Daily Trading Cycle Complete", summary, "success")
+
 
 def main():
     logger.info("Starting Paper Trading Daemon (Production Mode)...")
@@ -176,30 +180,51 @@ def main():
     # Model serializer for loading trained models
     serializer = ModelSerializer(output_dir="logs/models")
 
+    # Webhook notifier
+    notifier = Notifier()
+    notifier.send_message("Daemon Started", "Chrono Quant Paper Trading Daemon initialized.", "info")
+
     # Run for 30 days
     days_to_run = 30
     days_elapsed = 0
+    shutdown_flag = False
 
-    while days_elapsed < days_to_run:
+    def handle_shutdown(signum, frame):
+        nonlocal shutdown_flag
+        logger.info(f"Received signal {signum}, initiating graceful shutdown...")
+        try:
+            notifier.send_message("Daemon Stopping", f"Graceful shutdown initiated (Signal {signum})", "warning")
+        except:
+            pass
+        shutdown_flag = True
+
+    signal.signal(signal.SIGINT, handle_shutdown)
+    signal.signal(signal.SIGTERM, handle_shutdown)
+
+    while days_elapsed < days_to_run and not shutdown_flag:
         logger.info(f"\n📅 Day {days_elapsed + 1}/{days_to_run} of Paper Trading")
 
         try:
             clock = executor.api.get_clock()
             if clock.is_open:
-                run_trading_cycle(executor, cfg, serializer)
+                run_trading_cycle(executor, cfg, serializer, notifier)
             else:
                 next_open = clock.next_open
                 logger.info(f"  Market closed. Next open: {next_open}")
         except Exception as e:
             logger.error(f"  Error in trading cycle: {e}", exc_info=True)
+            notifier.send_message("Trading Cycle Error", str(e), "error")
 
         days_elapsed += 1
 
-        # Sleep for a day
+        # Sleep for a day (interruptible)
         logger.info("  Sleeping until next cycle...")
-        time.sleep(86400)  # 24 hours
+        for _ in range(86400):
+            if shutdown_flag:
+                break
+            time.sleep(1)
 
-    logger.info("30-day paper trading run complete.")
+    logger.info("Daemon run complete or stopped.")
 
 
 if __name__ == "__main__":

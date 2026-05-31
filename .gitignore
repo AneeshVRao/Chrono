@@ -1,4 +1,4 @@
-# Python
+# Python / Build
 __pycache__/
 *.pyc
 *.py[cod]
@@ -14,14 +14,14 @@ venv/
 .venv/
 env/
 
-# IDE
+# IDE / Editor Noise
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# OS
+# OS Noise
 .DS_Store
 Thumbs.db
 
@@ -41,9 +41,15 @@ data/features/
 # Environment / Credentials
 .env
 .env.*
+!.env.example
 
 # Temp / audit output
+audit_report.txt
+bug_summary.txt
+err.txt
+ic_decay_plot.png
+ic_summary.csv
+ml_backtest*.txt
 
 # Jupyter
 .ipynb_checkpoints/
-

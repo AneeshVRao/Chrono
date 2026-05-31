@@ -1,5 +1,4 @@
 """Unit tests for feature engineering modules."""
-import pytest
 import numpy as np
 import pandas as pd
 from src.features.technical_indicators import TechnicalIndicators
@@ -134,3 +133,46 @@ class TestFeatureBuilder:
         df = self.fb._add_target(df)
         valid = df["target_direction"].dropna()
         assert set(valid.unique()).issubset({0.0, 1.0})
+
+    def test_save_features_no_cross_ticker_bleed(self, tmp_path):
+        fb = FeatureBuilder(
+            feature_params={
+                "technical_indicators": {"sma_windows": [10, 20], "ema_windows": [12]},
+                "returns": {"log_return_periods": [1, 5]},
+                "volatility": {"rolling_windows": [5, 20]},
+                "rolling_stats": {"windows": [5, 20], "metrics": ["mean", "std"]},
+                "target": {"forward_return_period": 5, "classification_threshold": 0.0},
+            },
+            output_dir=tmp_path
+        )
+        dates = pd.date_range("2023-01-01", periods=3, freq="D")
+
+        df_a = pd.DataFrame({
+            "ticker": ["A", "A", "A"],
+            "open": [100.0, 100.0, 100.0],
+            "high": [101.0, 101.0, 101.0],
+            "low": [99.0, 99.0, 99.0],
+            "close": [100.0, 100.0, 100.0],
+            "volume": [1000.0, 1000.0, 1000.0],
+            "sma_10": [np.nan, 1.0, 2.0]
+        }, index=dates)
+
+        df_b = pd.DataFrame({
+            "ticker": ["B", "B", "B"],
+            "open": [100.0, 100.0, 100.0],
+            "high": [101.0, 101.0, 101.0],
+            "low": [99.0, 99.0, 99.0],
+            "close": [100.0, 100.0, 100.0],
+            "volume": [1000.0, 1000.0, 1000.0],
+            "sma_10": [10.0, np.nan, 20.0]
+        }, index=dates)
+
+        data = {"A": df_a, "B": df_b}
+        fb.save_features(data)
+
+        combined_path = tmp_path / "all_features.parquet"
+        assert combined_path.exists()
+
+        combined_df = pd.read_parquet(combined_path)
+        df_b_res = combined_df[combined_df["ticker"] == "B"].sort_index()
+        assert df_b_res["sma_10"].iloc[1] == 10.0

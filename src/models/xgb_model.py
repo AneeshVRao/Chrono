@@ -21,10 +21,10 @@ class XGBoostModel(BaseModel):
 
     def __init__(self, params: dict | None = None) -> None:
         super().__init__(name="XGBoost", params=params)
-        
+
         if XGBClassifier is None:
             raise ImportError("xgboost is not installed. Please install it to use XGBoostModel.")
-            
+
         # Default typical quantitative params allowing tree pruning and anti-overfitting
         default_kwargs = {
             "n_estimators": 100,
@@ -33,7 +33,7 @@ class XGBoostModel(BaseModel):
             "eval_metric": "logloss",
             "random_state": 42
         }
-        
+
         model_kwargs = self.params.get("model_kwargs", default_kwargs)
         self.model = XGBClassifier(**model_kwargs)
 
@@ -51,13 +51,13 @@ class XGBoostModel(BaseModel):
     def predict_proba(self, X: pd.DataFrame | np.ndarray) -> np.ndarray:
         if not self.is_fitted:
             raise RuntimeError("Model must be fitted before calling predict_proba.")
-            
+
         probas = self.model.predict_proba(X)
-        
+
         # XGBClassifier generally returns probabilities shaped (N, 2) when trained on binary
         classes = list(self.model.classes_)
         if 1 in classes:
             idx = classes.index(1)
             return probas[:, idx]
-            
+
         return probas[:, -1]
