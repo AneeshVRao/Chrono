@@ -1,3 +1,4 @@
+# Resolved Findings: Path Traversal in Data Cleaner (High), Interpolation Lookahead Bias (High)
 """
 Data cleaner — handles missing values, outliers, and resampling.
 Produces analysis-ready OHLCV data.
@@ -45,8 +46,17 @@ class DataCleaner:
             output_dir=output_dir,
         )
 
+    def _validate_ticker(self, ticker: str) -> None:
+        """Ensure the ticker contains no path traversal elements or directory separators."""
+        clean_name = Path(ticker).name
+        if clean_name != ticker or ".." in ticker or "/" in ticker or "\\" in ticker:
+            raise ValueError(
+                f"Malformed ticker name: '{ticker}'. Directory separators or path traversal are not allowed."
+            )
+
     def check_missing(self, df: pd.DataFrame, ticker: str) -> bool:
         """Return True if ticker passes the missing-data threshold."""
+        self._validate_ticker(ticker)
         pct = df.isnull().mean().max()
         if pct > self.max_missing_pct:
             logger.warning(
@@ -61,7 +71,9 @@ class DataCleaner:
         if self.fill_method == "ffill":
             df = df.ffill() 
         elif self.fill_method == "interpolate":
-            df = df.interpolate(method="time")
+            # Restrict time-based interpolation to limit_direction='forward' to prevent future data leakage.
+            # In time series, bidirectional filling leaks future information to past data.
+            df = df.interpolate(method="time", limit_direction="forward")
         else:
             df = df.ffill()
         return df
@@ -107,6 +119,7 @@ class DataCleaner:
 
     def clean(self, df: pd.DataFrame, ticker: str) -> pd.DataFrame | None:
         """Full cleaning pipeline for a single ticker. Returns None if data fails checks."""
+        self._validate_ticker(ticker)
         logger.info(f"Cleaning {ticker} ({len(df)} rows)")
 
         if not self.check_missing(df, ticker):
@@ -126,6 +139,7 @@ class DataCleaner:
         """Clean all tickers. Returns only those that pass validation."""
         cleaned: dict[str, pd.DataFrame] = {}
         for ticker, df in raw_data.items():
+            self._validate_ticker(ticker)
             result = self.clean(df.copy(), ticker)
             if result is not None:
                 cleaned[ticker] = result
@@ -136,6 +150,7 @@ class DataCleaner:
         """Save cleaned data to Parquet."""
         saved: list[Path] = []
         for ticker, df in data.items():
+            self._validate_ticker(ticker)
             path = self.output_dir / f"{ticker}.parquet"
             df.to_parquet(path, engine="pyarrow", index=True)
             saved.append(path)

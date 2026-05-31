@@ -1,3 +1,4 @@
+# Resolved Findings: Path Traversal in Data Cleaner (Validation Tests)
 """Unit tests for DataCleaner module."""
 import pytest
 import numpy as np
@@ -98,3 +99,20 @@ class TestCleanPipeline:
         df.iloc[:50] = np.nan  # 50% missing
         c = DataCleaner(max_missing_pct=0.05)
         assert c.clean(df, "BAD") is None
+
+
+class TestCleanerSecurity:
+    def test_path_traversal_raises_clean(self):
+        c = DataCleaner()
+        with pytest.raises(ValueError):
+            c.clean(pd.DataFrame(), "../evil")
+
+    def test_path_traversal_raises_clean_all(self):
+        c = DataCleaner()
+        with pytest.raises(ValueError):
+            c.clean_all({"nested/evil": pd.DataFrame()})
+
+    def test_path_traversal_raises_save_processed(self):
+        c = DataCleaner()
+        with pytest.raises(ValueError):
+            c.save_processed({"..\\evil": pd.DataFrame()})
