@@ -18,9 +18,6 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 from xgboost import XGBClassifier
-try:
-except ImportError:
-    pass
 
 def load_data() -> tuple[pd.DataFrame, pd.Series]:
     """Load combined feature data from parquet."""

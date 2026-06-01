@@ -480,7 +480,9 @@ class DataPipeline:
                 # Note: we use the full df up to test period for rolling calculations
                 full_up_to_test = df.loc[df.index <= t_test_end]
                 meta_features_full = meta.build_meta_features(full_up_to_test, primary_model)
-                meta_features_test = meta_features_full.loc[test_mask]
+                meta_features_test = meta_features_full.loc[
+                    (meta_features_full.index >= t_test_start) & (meta_features_full.index <= t_test_end)
+                ]
 
                 if meta_features_test.empty:
                     continue
